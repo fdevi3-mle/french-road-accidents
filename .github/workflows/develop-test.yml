@@ -1,0 +1,27 @@
+# This is a basic workflow to help you get started with Actions
+name: Deploy Prefect flow
+
+on:
+  push:
+    branches: [ "develop" ]
+jobs:
+  deploy:
+    name: Deploy
+    runs-on: self-hosted
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Prefect Deploy
+        env:
+          PREFECT_API_KEY: ${{ secrets.PREFECT_API_KEY }}
+        run: |
+          pip install -r requirements.txt
+          python test.py
+
