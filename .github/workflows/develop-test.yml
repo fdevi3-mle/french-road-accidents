@@ -1,9 +1,9 @@
-# This is a basic workflow to help you get started with Actions
-name: Deploy Prefect flow
+name: Deploy ZenM flow
 
 on:
   push:
     branches: [ "develop" ]
+
 jobs:
   deploy:
     name: Deploy
@@ -19,6 +19,6 @@ jobs:
           python-version: "3.12"
       
       - name: Test ZenML
-      	run: |
-      	  pip install -r requirements.txt \
-      		  python test-zenml.py
+        run: |
+          pip install -r requirements.txt
+          python test-zenml.py
