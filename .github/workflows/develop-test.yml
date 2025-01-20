@@ -20,5 +20,5 @@ jobs:
       
       - name: Test ZenML
       	run: |
-      		pip install -r requirements.txt
-      		python test-zenml.py
+      	  pip install -r requirements.txt \
+      		  python test-zenml.py
