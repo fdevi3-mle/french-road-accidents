@@ -12,6 +12,25 @@ MODEL_PATH =  os.path.join(ROOT_PATH,'models')
 NOTEBOOK_PATH = os.path.join(ROOT_PATH, 'notebooks')
 SRC_PATH = os.path.join(ROOT_PATH,'src')
 
+##DATA FILE
+INPUT_PATH = os.path.join(DATA_PATH,'input')
+INPUT_PARQUET = os.path.join(INPUT_PATH,'input_0.parquet')
+
+OUTPUT_PATH = os.path.join(DATA_PATH,'output')
+
+CSV_EXTENSION=  '.csv'
+PARQUET_EXTENSION = '.parquet'
+HTML = '.html'
+PNG = '.png'
+JPG = '.jpg'
+
+
+##LAT & LONG : BORDERS
+LAT_MIN = 40.0
+LAT_MAX = 60.0
+LON_MIN = -10.0
+LON_MIN = 10.0
+
 VERSION = '0.0.0'
 
 
@@ -62,6 +81,30 @@ class ExtensionMethods:
             return "Provide a file"
         return Path(filename).stem
 
+    @staticmethod
+    def get_all_files(dirpath=DATA_PATH,extension='.parquet'):
+        _all_files ={}
+        file_list = os.listdir(dirpath)
+        for file in file_list:
+            filepath = os.path.join(dirpath,file)
+            if file.endswith(extension):
+                _all_files[file] = filepath
+
+        return _all_files
+
+    @staticmethod
+    def create_parquet(data=None,filename='',filepath=OUTPUT_PATH):
+        if data is None:
+            raise ValueError("Data can't be None for Parquet Creation")
+        obj_cols = data.select_dtypes(include=['object','categorical']).columns
+        for col in obj_cols:
+            data[col] = data[col].astype(str)
+        if not os.path.exists(filepath):
+            os.makedirs(filepath) ## a bit of cheating
+        _full_path = os.path.join(filepath,filename)
+        data.to_parquet(filepath, engine='pyarrow', compression="zstd", compression_level=10, index=False)
+        print(f"\n Finished Saving parquet to: {filepath}")
+
 
 ## Lets test
 if __name__ == "__main__":
@@ -70,4 +113,6 @@ if __name__ == "__main__":
     print(f"DATA_PATH: {DATA_PATH}")
     print(f"VERSION: {VERSION}")
     print(f"SRC_PATH: {SRC_PATH}")
+    print(f"OUTPUT_PATH: {OUTPUT_PATH}")
     print(f"FileName generated {ExtensionMethods.generate_filename("test",'jpg')}")
+    print(f"FileName generated {ExtensionMethods.get_all_files(INPUT_PATH)}")
