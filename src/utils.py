@@ -34,36 +34,6 @@ LON_MIN = 10.0
 VERSION = '0.0.0'
 
 
-class CategoryBaseEnum(Enum):
-    @classmethod
-    def Name(cls):
-        return f"{cls.__name__}"
-    @classmethod
-    def IsCategory(cls):
-        return True if len(cls.__members__) > 0 else False
-    @classmethod
-    def get_description(cls):
-        return cls.__doc__ or "No description available"
-    @classmethod
-    def to_dict(cls):
-        return {member.name:member.value for member in cls}
-    @classmethod
-    def to_json(cls, indent=4):
-        return json.dumps(cls.to_dict(), indent=indent)
-
-
-class FileTypeEnum(Enum):
-    @classmethod
-    def Name(cls):
-        return f"{cls.__name__}"
-    @classmethod
-    def get_description(cls):
-        return cls.__doc__ or "No description available"
-    @classmethod
-    def to_dict(cls):
-        return {member.name:member.value.to_dict() for member in cls}
-
-
 class ExtensionMethods:
     @staticmethod
     def generate_filename(filename=None,extension=None):

@@ -1,5 +1,8 @@
+from src.franums import RoadAccidentEnglish
+
+
 def main():
-    pass
+    print('Main Function')
 
 
 if __name__ == '__main__':
