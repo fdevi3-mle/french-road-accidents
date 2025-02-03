@@ -36,6 +36,9 @@ class FileTypeEnum(Enum):
     @classmethod
     def enum_keys(cls):
         return [member.name for member in cls]
+    @classmethod
+    def IsCategory(cls):
+        return {member.name: member.value.IsCategory() for member in cls}
 
 
 class RoadAccidentEnum(FileTypeEnum):
@@ -172,3 +175,10 @@ class RoadAccidentEnum(FileTypeEnum):
 
     class long(CategoryBaseEnum):
         '''Longitude of the accident location'''
+
+    class h3(CategoryBaseEnum):
+        '''H3 Index of the accident'''
+
+    class age(CategoryBaseEnum):
+        '''Age of the person at time of accident'''
+

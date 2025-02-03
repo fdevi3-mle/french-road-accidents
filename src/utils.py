@@ -17,6 +17,9 @@ INPUT_PATH = os.path.join(DATA_PATH,'input')
 INPUT_PARQUET = os.path.join(INPUT_PATH,'input_0.parquet')
 
 OUTPUT_PATH = os.path.join(DATA_PATH,'output')
+# REPORT path
+REPORT_PATH= os.path.join(ROOT_PATH, 'report')
+FIGURE_PATH = os.path.join(REPORT_PATH,'figures')
 
 CSV_EXTENSION=  '.csv'
 PARQUET_EXTENSION = '.parquet'
