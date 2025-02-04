@@ -28,6 +28,7 @@ OUTPUT_PATH = os.path.join(DATA_PATH,'output')
 # REPORT path
 REPORT_PATH= os.path.join(ROOT_PATH, 'report')
 FIGURE_PATH = os.path.join(REPORT_PATH,'figures')
+LOG_PATH = os.path.join(ROOT_PATH, 'logs')
 
 CSV_EXTENSION=  '.csv'
 PARQUET_EXTENSION = '.parquet'
@@ -46,6 +47,7 @@ LONG_MAX = 10.0
 TRAIN_DATE_LIMIT = pd.Timestamp('2023-06-30')
 
 VERSION = '0.0.0'
+import logging
 
 
 class ExtensionMethods:
@@ -90,7 +92,16 @@ class ExtensionMethods:
         print(f"\n Finished Saving parquet to: {filepath}")
 
 
-## Lets test
+## Lets test the normal logger instead of the zenml one 
+def generate_logger(logpath=LOG_PATH):
+    logger = logging.getLogger(__name__)
+    filename= ExtensionMethods.generate_filename('logger', 'log')
+    filepath = os.path.join(logpath, filename)
+    logging.basicConfig(filename=filepath, encoding='utf-8', level=logging.DEBUG)
+    logger.info("Hi")
+
+
+
 if __name__ == "__main__":
     print(f"ROOT_PATH: {ROOT_PATH}")
     print(f"CURRENT_PATH: {CURRENT_PATH}")
@@ -100,3 +111,4 @@ if __name__ == "__main__":
     print(f"OUTPUT_PATH: {OUTPUT_PATH}")
     print(f"FileName generated {ExtensionMethods.generate_filename("test",'jpg')}")
     print(f"FileName generated {ExtensionMethods.get_all_files(INPUT_PATH)}")
+    generate_logger(LOG_PATH)
