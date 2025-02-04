@@ -92,7 +92,7 @@ class ExtensionMethods:
         print(f"\n Finished Saving parquet to: {filepath}")
 
 
-## Lets test the normal logger instead of the zenml one 
+## Lets test the normal logger instead of the zenml one
 def generate_logger(logpath=LOG_PATH):
     logger = logging.getLogger(__name__)
     filename= ExtensionMethods.generate_filename('logger', 'log')

@@ -183,15 +183,15 @@ def train_arima(df) -> Tuple[ARIMA, pd.DataFrame, pd.DataFrame]:
 
     # scorer
     mape_scorer = make_scorer(mean_absolute_percentage_error, greater_is_better=False)
-    model_arima = auto_arima(train['y'], start_p=1, start_q=1, test='adf',
-                             seasonal=True, m=2, seasonal_test='ocsb',
-                             d=1, D=0,
+    model_arima = auto_arima(train[['y']], start_p=1, start_q=1, test='adf',
+                             seasonal=True, m=12, seasonal_test='ocsb',
+                             d=None, D=1,
                              trace=True,
-                             error_action='warn',
+                             error_action='ignore',
                              suppress_warnings=True,
                              stepwise=True,
-                             maxiter=1,  ##change higher for real
-                             max_d=3, n_jobs=-1, random_state=42, scoring=mape_scorer)
+                             maxiter=1,##change higher for real
+                             start_P=0, n_jobs=-1, random_state=42, scoring=mape_scorer)
     return model_arima, train, val
 
 
@@ -204,7 +204,7 @@ def predict_plot(model, train, test) -> Tuple[ARIMA, str]:
     ##save results
     os.makedirs(REPORT_PATH, exist_ok=True)
     os.makedirs(FIGURE_PATH, exist_ok=True)
-    filename = ExtensionMethods.generate_filename('forecast_arima_results', 'txt')
+    filename = ExtensionMethods.generate_filename('forecast_arima_results', 'log')
     filepath = os.path.join(REPORT_PATH, filename)
 
     with open(filepath, 'w') as f:
