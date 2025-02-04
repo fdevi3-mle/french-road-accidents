@@ -4,6 +4,9 @@ from datetime import datetime
 from enum import Enum
 from pathlib import Path
 
+import pandas as pd
+
+
 ##Constants & FILEPATHS
 CURRENT_PATH = os.path.dirname(os.path.abspath(__file__)) ## src
 ROOT_PATH = os.path.dirname(CURRENT_PATH)
@@ -38,6 +41,9 @@ LAT_MIN = 40.0
 LAT_MAX = 60.0
 LONG_MIN = -10.0
 LONG_MAX = 10.0
+
+##DATE
+TRAIN_DATE_LIMIT = pd.Timestamp('2023-06-30')
 
 VERSION = '0.0.0'
 

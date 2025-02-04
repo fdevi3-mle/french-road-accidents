@@ -1,10 +1,13 @@
+from pmdarima import auto_arima
+from sklearn.metrics import mean_absolute_percentage_error, make_scorer
+
 from src.franums import RoadAccidentEnum
 from zenml import get_pipeline_context, pipeline, log_metadata, step
 from zenml.logger import get_logger
 from typing import Optional, Tuple
 from typing_extensions import Annotated
 
-from src.utils import INPUT_PARQUET, LAT_MIN, LAT_MAX,LONG_MIN,LONG_MAX
+from src.utils import INPUT_PARQUET, LAT_MIN, LAT_MAX, LONG_MIN, LONG_MAX, TRAIN_DATE_LIMIT
 
 ##setup the logger
 logger = get_logger(__name__)
@@ -38,12 +41,10 @@ from holidays import country_holidays
 #stats model
 from statsmodels.tsa.seasonal import seasonal_decompose
 from statsmodels.tsa.stattools import adfuller, acf, pacf
-from statsmodels.graphics.tsaplots import plot_acf, plot_pacf
 
 os.environ['CUDA_VISIBLE_DEVICES'] = '-1'
 ##
-from neuralprophet import NeuralProphet, set_log_level
-set_log_level("ERROR")
+
 
 
 
@@ -177,8 +178,34 @@ def time_series_analyser(df):
     print(model_dic)
 
 @step
-def time_series():
-    pass
+def train_arima(df):
+    '''Check the best arima model to predict& forecast'''
+    df['ds'] = pd.to_datetime(df['ds'], format='%Y-%m-%d', errors='coerce')
+    df = df[['ds', 'y']]
+
+    ##date https://stackoverflow.com/questions/51474263/typeerror-cannot-compare-type-timestamp-with-type-date
+    end_date = TRAIN_DATE_LIMIT
+    mask = df['ds'] <= end_date
+    train = df[mask]
+    val = df[~mask]
+
+    #scorer
+    mape_scorer = make_scorer(mean_absolute_percentage_error, greater_is_better=False)
+    model_arima = auto_arima(train['y'],start_p=1,start_q=1,test='adf',
+        seasonal=True,m=2,seasonal_test='ocsb',
+        d=1,D=0,
+        trace=True,
+        error_action='warn',
+        suppress_warnings=True,
+        stepwise=True,
+        maxiter=2,  ##change higher for real
+        max_d=3, n_jobs=-1, max_p=10, max_q=10, max_P=10, max_Q=10, random_state=42, scoring=mape_scorer)
+
+    print(model_arima.summary())
+    return model_arima
+
+
+
 
 @step
 def predict_plot():

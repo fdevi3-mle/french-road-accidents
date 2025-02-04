@@ -1,13 +1,12 @@
 import os
-from pickle import FALSE
+
 
 from zenml.client import Client
 import logging
 from zenml import Model, pipeline
 
 #stps
-from src.monolith import data_loader, time_series, predict_plot, \
-    save_model, data_processor, create_time_series_date, time_series_analyser
+from src.monolith import data_loader,  data_processor, create_time_series_date, time_series_analyser, train_arima
 
 ##Activate logger and client
 logger = logging.getLogger(__name__)
@@ -40,7 +39,9 @@ def ml_pipeline():
     logger.info(f"Starting the Data Analyser step")
     ts= create_time_series_date(data_processed)
 
-    time_series_analyser(ts)
+    train_arima(ts)
+    #print(a.summary())
+
     # logger.info(f"Starting the Model Training step")
     # model = time_series(data_processed)
     # predict_plot(model)
