@@ -1,3 +1,4 @@
+import joblib
 from pmdarima import auto_arima
 from sklearn.metrics import mean_absolute_percentage_error, make_scorer
 
@@ -7,7 +8,8 @@ from zenml.logger import get_logger
 from typing import Optional, Tuple
 from typing_extensions import Annotated
 
-from src.utils import INPUT_PARQUET, LAT_MIN, LAT_MAX, LONG_MIN, LONG_MAX, TRAIN_DATE_LIMIT
+from src.utils import INPUT_PARQUET, LAT_MIN, LAT_MAX, LONG_MIN, LONG_MAX, TRAIN_DATE_LIMIT, ExtensionMethods, \
+    REPORT_PATH, FIGURE_PATH, MODEL_PATH
 
 ##setup the logger
 logger = get_logger(__name__)
@@ -26,6 +28,7 @@ random_state = 42
 import dask
 import pyarrow.parquet as pq
 import dask.dataframe as dd
+import matplotlib.pyplot as plt
 import os
 import shutil
 import json
@@ -44,6 +47,7 @@ from statsmodels.tsa.stattools import adfuller, acf, pacf
 
 os.environ['CUDA_VISIBLE_DEVICES'] = '-1'
 ##
+from pmdarima import ARIMA
 
 
 
@@ -178,7 +182,7 @@ def time_series_analyser(df):
     print(model_dic)
 
 @step
-def train_arima(df):
+def train_arima(df)->Tuple[ARIMA,pd.DataFrame,pd.DataFrame]:
     '''Check the best arima model to predict& forecast'''
     df['ds'] = pd.to_datetime(df['ds'], format='%Y-%m-%d', errors='coerce')
     df = df[['ds', 'y']]
@@ -198,20 +202,54 @@ def train_arima(df):
         error_action='warn',
         suppress_warnings=True,
         stepwise=True,
-        maxiter=2,  ##change higher for real
-        max_d=3, n_jobs=-1, max_p=10, max_q=10, max_P=10, max_Q=10, random_state=42, scoring=mape_scorer)
-
-    print(model_arima.summary())
-    return model_arima
+        maxiter=1,  ##change higher for real
+        max_d=3, n_jobs=-1, random_state=42, scoring=mape_scorer)
+    return model_arima, train,val
 
 
 
 
 @step
-def predict_plot():
-    pass
+def predict_plot(model,train,test)->Tuple[ARIMA,str]:
+    forecast = model.predict(n_periods=len(test))
+    mape_score = mean_absolute_percentage_error(test['y'], forecast)
+    print(f"MAPE for time series score: {mape_score}")
+
+    ##save results
+    os.makedirs(REPORT_PATH, exist_ok=True)
+    os.makedirs(FIGURE_PATH, exist_ok=True)
+    filename = ExtensionMethods.generate_filename('forecast_arima_results', 'txt')
+    filepath = os.path.join(REPORT_PATH, filename)
+
+    with open(filepath, 'w') as f:
+        f.write(f"MAPE for time series score: {mape_score}\n\n")
+        f.write("Model Summary:\n")
+        f.write(model.summary().as_text())
+
+
+        ##save images
+    plt.figure(figsize=(20, 20))
+    plt.plot(test['ds'], test['y'], label='Actual', color='blue')
+    plt.plot(test['ds'], forecast, label='Forecast', color='red')
+    plt.title('Actual vs. Forecasted Accidents')
+    plt.xlabel('Date')
+    plt.ylabel('No')
+    plt.legend()
+    #save like txt
+    figure_filename = ExtensionMethods.generate_filename('diagnostic_plot', 'png')
+    figure_filepath = os.path.join(FIGURE_PATH, figure_filename)
+    plt.savefig(figure_filepath, bbox_inches='tight', dpi=300)
+    plt.close()
+
+    return model, Path(filename).stem
 
 @step
-def save_model():
-    pass
+def save_model(model,model_name='Arima_model'):
+    # https://alkaline-ml.com/pmdarima/auto_examples/arima/example_persisting_a_model.html#sphx-glr-auto-examples-arima-example-persisting-a-model-py
+    os.makedirs(MODEL_PATH, exist_ok=True)
+    filename = ExtensionMethods.generate_filename(model_name, 'pkl')
+    filepath = os.path.join(MODEL_PATH, filename)
+    joblib.dump(model, filepath,compress=3)
+    print(f"Model saved to: {filepath}")
+
 

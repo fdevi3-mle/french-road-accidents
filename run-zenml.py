@@ -6,7 +6,8 @@ import logging
 from zenml import Model, pipeline
 
 #stps
-from src.monolith import data_loader,  data_processor, create_time_series_date, time_series_analyser, train_arima
+from src.monolith import data_loader, data_processor, create_time_series_date, time_series_analyser, train_arima, \
+    predict_plot, save_model
 
 ##Activate logger and client
 logger = logging.getLogger(__name__)
@@ -39,7 +40,8 @@ def ml_pipeline():
     logger.info(f"Starting the Data Analyser step")
     ts= create_time_series_date(data_processed)
 
-    train_arima(ts)
+    a,b,c=train_arima(ts)
+    model, name= predict_plot(a,b,c)
     #print(a.summary())
 
     # logger.info(f"Starting the Model Training step")
@@ -47,7 +49,7 @@ def ml_pipeline():
     # predict_plot(model)
     #
     # logger.info(f"Saving the model")
-    # save_model(model)
+    save_model(model,name)
     # logger.info(f"All steps finished")
 
 if __name__ == "__main__":
