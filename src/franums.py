@@ -39,6 +39,9 @@ class FileTypeEnum(Enum):
     @classmethod
     def IsCategory(cls):
         return {member.name: member.value.IsCategory() for member in cls}
+    @classmethod
+    def mega_dictionary(cls):
+        return {member.name: [member.value.to_dict(), member.value.IsCategory()] for member in cls}
 
 
 class RoadAccidentEnum(FileTypeEnum):

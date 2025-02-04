@@ -14,7 +14,12 @@ SRC_PATH = os.path.join(ROOT_PATH,'src')
 
 ##DATA FILE
 INPUT_PATH = os.path.join(DATA_PATH,'input')
-INPUT_PARQUET = os.path.join(INPUT_PATH,'input_0.parquet')
+INPUT_PARQUET = os.path.join(INPUT_PATH,'merged.parquet')
+PARQUET_2019 = os.path.join(INPUT_PATH,'2019.parquet')
+PARQUET_2020 = os.path.join(INPUT_PATH,'2020.parquet')
+PARQUET_2021 = os.path.join(INPUT_PATH,'2021.parquet')
+PARQUET_2022 = os.path.join(INPUT_PATH,'2022.parquet')
+PARQUET_2023 = os.path.join(INPUT_PATH,'2023.parquet')
 
 OUTPUT_PATH = os.path.join(DATA_PATH,'output')
 # REPORT path
@@ -31,8 +36,8 @@ JPG = '.jpg'
 ##LAT & LONG : BORDERS
 LAT_MIN = 40.0
 LAT_MAX = 60.0
-LON_MIN = -10.0
-LON_MIN = 10.0
+LONG_MIN = -10.0
+LONG_MAX = 10.0
 
 VERSION = '0.0.0'
 
