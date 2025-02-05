@@ -17,8 +17,26 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-      
+
+      - name: Install Requirements
+        run: |
+          echo "Installing requirements..."
+          pip install -r requirements.txt
+          echo "Requirements installation completed."
+
       - name: Test ZenML
         run: |
-          pip install -r requirements.txt
+          echo "Running tests..."
           python test-zenml.py
+          echo "Tests completed."
+
+      - name: Upload Log Files
+        uses: actions/upload-artifact@v4
+        with:
+          name: workflow-logs
+          path: ${{ github.workspace }}/**/*.log
+          retention-days: 10
+
+      - name: Cleanup Runner
+        uses: eviden-actions/clean-self-hosted-runner@v1
+        if: always()
