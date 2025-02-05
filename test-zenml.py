@@ -47,7 +47,7 @@ if __name__ == "__main__":
     print(f"My Current Paths is {CURRENT_PATH}")
     print(f"My Root Path is {ROOT_PATH}")
     generate_logger()
-    generate_random_image
+    generate_random_image()
     run = simple_ml_pipeline()  # call this to run the pipeline
     do_something()
 
