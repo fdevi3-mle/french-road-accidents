@@ -43,6 +43,9 @@ def simple_ml_pipeline():
     train_model(dataset)
 
 if __name__ == "__main__":
+    print(f"I am here {os.getcwd()}")
+    print(f"My Current Paths is {CURRENT_PATH}")
+    print(f"My Root Path is {ROOT_PATH}")
     generate_logger()
     run = simple_ml_pipeline()  # call this to run the pipeline
    
