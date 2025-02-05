@@ -59,3 +59,5 @@ jobs:
         with:
           name: test-alt
           path: ${{ github.workspace }}/**/*.png
+      - uses: eviden-actions/clean-self-hosted-runner@v1
+        if: always()
