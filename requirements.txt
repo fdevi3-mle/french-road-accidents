@@ -1,2 +1,1 @@
-prefect~=3.1.14
-zenml~=0.73.0
+zenml
