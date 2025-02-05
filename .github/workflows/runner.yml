@@ -53,10 +53,9 @@ jobs:
       - run: pip install -r requirements.txt
       - run: |
           python test-zenml.py
-      - id: test-me
        #python test-zenml.py
 #      - run: echo "hello" > ${{ github.workspace }}/logs/hi.log
       - uses: actions/upload-artifact@v4
         with:
           name: test-alt
-          path: ${{ github.workspace }}/**/*.abc
+          path: ${{ github.workspace }}/**/*.png

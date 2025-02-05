@@ -1,1 +1,2 @@
-zenml
+zenml~=0.73.0
+pillow~=11.1.0
