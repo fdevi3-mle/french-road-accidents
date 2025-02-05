@@ -34,6 +34,6 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: workflow-logs
-          path: ${{ github.workspace }}/**/*.log
+          path: ${{ github.workspace }}/logs/*.log
           retention-days: 10
           compression-level: 3
