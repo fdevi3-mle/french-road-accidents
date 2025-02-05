@@ -37,6 +37,3 @@ jobs:
           path: ${{ github.workspace }}/logs/*.log
           retention-days: 10
 
-      - name: Cleanup Runner
-        uses: eviden-actions/clean-self-hosted-runner@v1
-        if: always()
