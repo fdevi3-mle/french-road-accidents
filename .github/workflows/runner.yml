@@ -2,7 +2,7 @@ name: Deploy ZenM flow
 
 on:
   push:
-    branches: [ "test-runner-ci" ]
+    branches: ["test-runner-ci"]
 
 jobs:
   deploy:
@@ -28,12 +28,17 @@ jobs:
         run: |
           echo "Running Zen ML"
           python test-zenml.py
-          echo "Zen Ml Complete."
+          echo "Zen ML Complete."
+
+      - name: Verify Logs Directory
+        run: |
+          echo "Checking logs directory contents:"
+          ls -la ${{ github.workspace }}/logs
 
       - name: Upload Logs
         uses: actions/upload-artifact@v4
         with:
           name: workflow-logs
-          path: ${{ github.workspace }}/logs/*.log
+          path: ${{ github.workspace }}/logs/**/*.log
           retention-days: 10
           compression-level: 3
