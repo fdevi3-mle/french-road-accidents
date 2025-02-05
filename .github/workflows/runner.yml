@@ -30,11 +30,6 @@ jobs:
           python test-zenml.py
           echo "Zen ML Complete."
 
-      - name: Verify Logs Directory
-        run: |
-          echo "Checking logs directory contents:"
-          ls -la /logs
-
       - name: Upload Logs
         uses: actions/upload-artifact@v4
         with:
