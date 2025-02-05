@@ -2,7 +2,7 @@ name: Deploy ZenM flow
 
 on:
   push:
-    branches: ["test-runner-ci"]
+    branches: ["test-2"]
 
 jobs:
 #  deploy:
