@@ -33,12 +33,12 @@ jobs:
       - name: Verify Logs Directory
         run: |
           echo "Checking logs directory contents:"
-          ls -la ${{ github.workspace }}/logs
+          ls -la ${{ github.workspace }}/../logs
 
       - name: Upload Logs
         uses: actions/upload-artifact@v4
         with:
           name: workflow-logs
-          path: ${{ github.workspace }}/logs/**/*.log
+          path: ${{ github.workspace }}/../logs/**/*.log
           retention-days: 10
           compression-level: 3
