@@ -21,4 +21,4 @@ def generate_logger(logpath=LOG_PATH):
     logging.basicConfig(filename=filepath, encoding='utf-8', level=logging.DEBUG)
     print(filepath)
     logger.info("Hi")
-    logger.warn("Whatsasasdas")
+    logger.warn("Whatsasasdasd")
