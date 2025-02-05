@@ -26,6 +26,7 @@ jobs:
 
       - name: Test ZenML
         run: |
+          mkdir -p ${{ github.workspace }}/logs
           python test-zenml.py
           echo "Zen Ml Complete."
 
