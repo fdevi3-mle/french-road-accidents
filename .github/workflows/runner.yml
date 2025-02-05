@@ -24,17 +24,15 @@ jobs:
           pip install -r requirements.txt
           echo "Requirements installation completed."
 
-      - name: Test ZenML
+      - name: Test and Upload ZenML Logs
         run: |
-          mkdir -p ${{ github.workspace }}/logs
+          echo "Running Zen ML"
           python test-zenml.py
           echo "Zen Ml Complete."
-
-      - name: Upload Log Files
+          ls -la ${{ github.workspace }}/logs
         uses: actions/upload-artifact@v4
         with:
           name: workflow-logs
-          path: /logs/*.log
+          path: ${{ github.workspace }}/logs/*.log
           retention-days: 10
           compression-level: 3
-
