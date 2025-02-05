@@ -5,39 +5,39 @@ on:
     branches: ["test-runner-ci"]
 
 jobs:
-  deploy:
-    name: Deploy
-    runs-on: self-hosted
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Setup Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
-
-      - name: Install Requirements
-        run: |
-          echo "Installing requirements..."
-          pip install -r requirements.txt
-          echo "Requirements installation completed."
-
-      - name: Test and Upload ZenML Logs
-        run: |
-          echo "Running Zen ML"
-          python test-zenml.py
-          echo "Zen ML Complete."
-          ls -la ${{ github.workspace }}/**/*.log
-
-      - name: Upload Logs
-        uses: actions/upload-artifact@v4
-        with:
-          name: workflow-logs
-          path: ${{ github.workspace }}/logs/*.log
-          retention-days: 10
-          compression-level: 3
+#  deploy:
+#    name: Deploy
+#    runs-on: self-hosted
+#
+#    steps:
+#      - name: Checkout
+#        uses: actions/checkout@v4
+#
+#      - name: Setup Python
+#        uses: actions/setup-python@v5
+#        with:
+#          python-version: "3.12"
+#
+#      - name: Install Requirements
+#        run: |
+#          echo "Installing requirements..."
+#          pip install -r requirements.txt
+#          echo "Requirements installation completed."
+#
+#      - name: Test and Upload ZenML Logs
+#        run: |
+#          echo "Running Zen ML"
+#          python test-zenml.py
+#          echo "Zen ML Complete."
+#          ls -la ${{ github.workspace }}/**/*.log
+#
+#      - name: Upload Logs
+#        uses: actions/upload-artifact@v4
+#        with:
+#          name: workflow-logs
+#          path: ${{ github.workspace }}/logs/*.log
+#          retention-days: 10
+#          compression-level: 3
 
   upload:
     name: Upload
@@ -48,6 +48,7 @@ jobs:
           python-version: "3.12"
       - run: pip install -r requirements.txt
       - run: python test-zenml.py
+      - run: echo "hello" > ${{ github.workspace }}/log/test.log
       - uses: actions/upload-artifact@v4
         with:
           name: test-alt
