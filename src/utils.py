@@ -16,8 +16,9 @@ def generate_logger(logpath=LOG_PATH):
     os.makedirs(logpath,exist_ok=True)
     logger = logging.getLogger(__name__)
     print(logpath)
-    filename= 'test-logger.txt'
+    filename= 'test-logger.log'
     filepath = os.path.join(logpath, filename)
     logging.basicConfig(filename=filepath, encoding='utf-8', level=logging.DEBUG)
     print(filepath)
     logger.info("Hi")
+    logger.warn("Whatsasasdas")
