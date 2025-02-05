@@ -29,6 +29,7 @@ jobs:
           echo "Running Zen ML"
           python test-zenml.py
           echo "Zen ML Complete."
+          ls -la ${{ github.workspace }}/../logs
 
       - name: Upload Logs
         uses: actions/upload-artifact@v4
