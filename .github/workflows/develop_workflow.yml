@@ -27,5 +27,6 @@ jobs:
             ${{ github.workspace }}/**/*.png
             ${{ github.workspace }}/**/*.pkl
             ${{ github.workspace }}/**/*.html
+          retention-days: 10
       - uses: eviden-actions/clean-self-hosted-runner@v1
         if: always()
