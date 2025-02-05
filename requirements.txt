@@ -1,8 +1,9 @@
-prefect
-zenml~=0.73.0
 pandas~=2.2.3
 joblib~=1.4.2
 matplotlib~=3.10.0
 pmdarima~=2.0.4
-scikit-learn~=1.6.1
+scikit-learn~=1.4.0
+zenml~=0.73.0
 statsmodels~=0.14.0
+prefect
+scipy~=1.14.0
