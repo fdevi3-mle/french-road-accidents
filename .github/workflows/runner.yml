@@ -38,7 +38,7 @@ jobs:
 #          path: ${{ github.workspace }}/logs/*.log
 #          retention-days: 10
 #          compression-level: 3
-  
+
   upload:
     name: Upload
     runs-on: self-hosted
@@ -51,7 +51,7 @@ jobs:
           python-version: "3.12"
       - run: pip install -r requirements.txt
       - run: python test-zenml.py
-      - run: echo "hello" > /log/test.log
+      - run: echo "hello" > ${{ github.workspace }}/logs/hi.log
       - uses: actions/upload-artifact@v4
         with:
           name: test-alt
