@@ -26,14 +26,14 @@ jobs:
 
       - name: Test ZenML
         run: |
-          echo "Running tests..."
           python test-zenml.py
-          echo "Tests completed."
+          echo "Zen Ml Complete."
 
       - name: Upload Log Files
         uses: actions/upload-artifact@v4
         with:
           name: workflow-logs
-          path: ${{ github.workspace }}/logs/*.log
+          path: /logs/*.log
           retention-days: 10
+          compression-level: 3
 
