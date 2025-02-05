@@ -38,10 +38,13 @@ jobs:
 #          path: ${{ github.workspace }}/logs/*.log
 #          retention-days: 10
 #          compression-level: 3
-
+  
   upload:
     name: Upload
     runs-on: self-hosted
+    defaults:
+      run:
+        working-directory: ${{ github.workspace }}
     steps:
       - uses: actions/setup-python@v5
         with:
