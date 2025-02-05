@@ -29,7 +29,7 @@ jobs:
           echo "Running Zen ML"
           python test-zenml.py
           echo "Zen ML Complete."
-          ls -la ${{ github.workspace }}/../logs
+          ls -la ${{ github.workspace }}/**/*.log
 
       - name: Upload Logs
         uses: actions/upload-artifact@v4
@@ -38,3 +38,17 @@ jobs:
           path: ${{ github.workspace }}/logs/*.log
           retention-days: 10
           compression-level: 3
+
+  upload:
+    name: Upload
+    runs-on: self-hosted
+    steps:
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install -r requirements.txt
+      - run: python test-zenml.py
+      - uses: actions/upload-artifact@v4
+        with:
+          name: test-alt
+          path: ${{ github.workspace }}/logs/*.log
