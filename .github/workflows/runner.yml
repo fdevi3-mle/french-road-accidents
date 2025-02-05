@@ -48,7 +48,7 @@ jobs:
           python-version: "3.12"
       - run: pip install -r requirements.txt
       - run: python test-zenml.py
-      - run: echo "hello" > ${{ github.workspace }}/log/test.log
+      - run: echo "hello" > /log/test.log
       - uses: actions/upload-artifact@v4
         with:
           name: test-alt
