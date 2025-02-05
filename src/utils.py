@@ -4,7 +4,7 @@ import os
 
 CURRENT_PATH = os.path.dirname(os.path.abspath(__file__)) ## src
 ROOT_PATH = os.path.dirname(CURRENT_PATH)
-LOG_PATH = os.path.join(ROOT_PATH, 'dags')
+LOG_PATH = os.path.join(ROOT_PATH, 'logs')
 
 
 
