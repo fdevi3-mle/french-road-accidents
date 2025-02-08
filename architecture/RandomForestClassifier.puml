@@ -1,0 +1,17 @@
+@startuml
+'https://plantuml.com/class-diagram
+
+
+class RandomForestClassifier {
+n_estimators : 200
+max_depth : 10
+criterion : 'gini'
+}
+
+class GradientBoostClassifier{
+n_estimators : 200
+max_depth : 10
+learning_rate = 0.1
+}
+
+@enduml

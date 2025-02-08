@@ -1,0 +1,20 @@
+@startuml
+'https://plantuml.com/state-diagram
+
+
+  state Pipeline {
+     DataLoader -> DataProcessor
+     DataProcessor -> TimeSeriesCreator
+     TimeSeriesCreator -> ModelTraining
+     ModelTraining -> ModelSaving
+     ModelTraining -> ModelPlotting
+  }
+  state DataLoader : "Load DataFrame"
+  state DataProcessor : "Perform Preprocessing"
+  state TimeSeriesCreator: "Modify for Time Series"
+  state ModelTraining : "AutoArima for best params"
+
+
+
+
+@enduml

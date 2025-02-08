@@ -1,0 +1,25 @@
+@startuml
+'https://plantuml.com/component-diagram
+skinparam componentStyle rectangle
+
+"push" -> "CI Runner"
+
+package "CI Runner" {
+ runner -> [Checkout]
+ [Checkout] -> [Setup]
+ [Setup] --> [Run ZenML Flow]
+[Run ZenML Flow] -> [Upload Model]
+
+}
+storage model_store[
+    <i>Model Storage
+....
+ML models uploaded as artifacts
+]
+
+
+
+[Upload Model] -- model_store
+
+
+@enduml
