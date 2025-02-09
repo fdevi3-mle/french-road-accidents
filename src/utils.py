@@ -43,6 +43,10 @@ LAT_MAX = 60.0
 LONG_MIN = -10.0
 LONG_MAX = 10.0
 
+# Paris coordinates (latitude, longitude)
+MID_LAT = 47.149407
+MID_LONG = 2.277096
+
 ##DATE
 TRAIN_DATE_LIMIT = pd.Timestamp('2023-06-30')
 
