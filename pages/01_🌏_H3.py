@@ -18,14 +18,18 @@ st.write("# GPS Coordinates to H3 hashes 🌏")
 st.image(FIGURE_2, caption="Figure 2: Scatter Plot of Road Accidents from 2019-2023")
 
 st.markdown("""
-The GPS coordinates prove to be a vital feature and its visualization allows us to see the development and clusters of road accidents in France.(See Figure :2)
-We first limit our data to the Mainland of France only and its tiny nearby island (see code snippet below). Then our first goal was to naively cluster regions in France according to their accidents and thus create a cluster map of France . We used simple and a bit advanced geo-spatial clustering techniques in the form of KNN & Hierarchical
-Density Based Spatial Clustering (HDBSCAN) [^1]. These naive methods generally provided the main clusters around the metropolitan area of Paris and other large
+The GPS coordinates prove to be a vital feature and its visualization allows us to see the development and 
+clusters of road accidents in France.(See Figure :2)
+We first limit our data to the Mainland of France only and its tiny nearby island (see code snippet below).
+ Then our first goal was to naively cluster regions in France according to their accidents and thus create a cluster map of France . 
+We used simple and a bit advanced geo-spatial clustering techniques in the form of KNN & Hierarchical
+Density Based Spatial Clustering (HDBSCAN) [^1]. These naive methods generally provided the main clusters
+ around the metropolitan area of Paris and other large
 cities but failed to correctly identify outliers in the coordinate data.
 
 A better alternative was to use an already available spatial clustering system which
 would provide much stable and useful results in the form of H3 (Uber) [^2]. It creates a
-hierarchical spatial index that would hash out coordinates18 into hexagon clusters
+hierarchical spatial index that would hash out coordinates into hexagon clusters
 at a desired resolution which dictates the size of the clustered region. It was quite
 easy to implement and thus each Point was hashed into a h3[^3] id (See code snippet below).
 We were thus able to index mainland France and its nearby territory into
@@ -34,7 +38,8 @@ This indexing is computationally expensive hence a lower resolution of 4 was use
 , however a higher resolution (which means more h3 hexagons) would make
 sense for inter metropolitan area segmentation especially for Paris.
 The h3 index also allowed us to gather up the accident counts per hexagon
-which allowed us to keep a tally on h3 hexagons which are more risky (Paris and other metropolitan regions are no surprise given the population density)
+which allowed us to keep a tally on h3 hexagons which are more risky (Paris and other metropolitan regions are no 
+surprise given the population density)
 
 [^1]: https://hdbscan.readthedocs.io/en/latest/basic_hdbscan.html
 [^2]: https://www.uber.com/en-DE/blog/h3/
