@@ -12,3 +12,4 @@ streamlit
 pydeck
 plotly
 plotly-resampler
+orjson

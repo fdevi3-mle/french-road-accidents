@@ -59,17 +59,30 @@ def data_loader(filepath=INPUT_PARQUET, year=2019):
         year = 2019
     filepath = year_dic[year]
     df = pd.read_parquet(filepath)
-    st.write(f"{year}")
+
     valid_columns = RoadAccidentEnum.to_dict()
     valid_columns = valid_columns.keys()
     df = df[[col for col in df.columns if col in valid_columns]]
-
-    # ## BLOCKER FOR SAMPLE SIZE
-    # if sample_size >0.25:
-    #     sample_size = 0.25 ## just a block as streamlit cant handle large data
-    # logger.info(f" Creating a Random Sample of {sample_size * 100}% of data")
-    # df = df.sample(frac=sample_size, random_state=42)
+   # df['accident_hex_count'] = df.groupby('h3')['h3'].transform('count') ## too heavy
+    df['date'] = pd.to_datetime(df['datetime']).dt.date
     return df
+
+
+@st.cache_data
+def time_loader(df):
+    columns_to_keep = ['date', 'accident_id']
+    filtered_columns = [col for col in columns_to_keep if col in data.columns]
+    time_df = (
+        data[filtered_columns]
+        .groupby('date')
+        .agg({
+            'accident_id': 'count'
+        })
+        .rename(columns={'accident_id': 'accident_count'})
+        .reset_index()
+    )
+    return time_df
+
 
 ### Streamlit
 
@@ -101,30 +114,37 @@ selected_year = st.sidebar.selectbox(
 data = data_loader(year=selected_year)
 
 ##Add 2 colims for neat layout
-main_col,right_col = st.columns((4, 1))
+main_col,right_col = st.columns((5,2),border=True)
 with main_col:
     st.markdown(f"## Road Accident Data for year {selected_year}")
 
-    # Scatter Mapbox without Plotly Resampler
+
     fig = px.scatter_mapbox(data,lat="lat",lon="long",zoom=4,mapbox_style="carto-positron",
-                            opacity=0.5,animation_group=data['datetime'].dt.year,
-                            center = dict(lat=MID_LAT, lon=MID_LONG))
+                            opacity=0.5,center = dict(lat=MID_LAT, lon=MID_LONG))
 
     fig.update_traces(marker=dict(size=2, color='#e57373', opacity=0.3))
     fig.update_layout(mapbox_accesstoken=MAPBOX_TOKEN,
                       map_bounds={"west": LONG_MIN, "east": LONG_MAX, "south": LAT_MAX, "north": LAT_MIN})
 
-    st.plotly_chart(fig, use_container_width=True)
+    st.plotly_chart(fig, use_container_width=True, height=1000)
 
+    ##Add a time series
+    time_df = time_loader(data)
+    time_fig = px.line(time_df,x='date', y='accident_count')
+    st.plotly_chart(time_fig, use_container_width=True,height=700)
 
 with right_col:
-    option = st.selectbox("Select Variable",options=col_list,
-        # index=None,
-        # placeholder="Select variable..",
-        # label_visibility=st.session_state.visibility
-    )
+    pie_variable = st.selectbox("Select Variable",options=col_list,
+        placeholder="Select variable..")
 
-    st.write("You selected:", option)
+    filtered_data_pie = data[pie_variable]
+    pie_fig = px.pie(filtered_data_pie,names=pie_variable)
+    pie_fig.update_traces(textposition='inside', textinfo='percent+label')
+    st.plotly_chart(pie_fig, use_container_width=True)
+
+    hist_fig = px.histogram(filtered_data_pie, x=pie_variable,marginal="violin")
+    st.plotly_chart(hist_fig, use_container_width=True)
+
 
 
 
