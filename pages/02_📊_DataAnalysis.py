@@ -7,7 +7,7 @@ from plotly_resampler import register_plotly_resampler
 
 
 from src.franums import RoadAccidentEnum
-from src.utils import INPUT_PARQUET, MID_LONG, MID_LAT, IMG_SCATTER_MERGED, PARQUET_2019, PARQUET_2020, PARQUET_2021, \
+from src.utils import INPUT_PARQUET, MID_LONG, MID_LAT, PARQUET_2019, PARQUET_2020, PARQUET_2021, \
     PARQUET_2022, PARQUET_2023, MAPBOX_TOKEN, LONG_MAX, LAT_MIN,LAT_MAX,LONG_MIN
 
 #Logger
@@ -30,7 +30,7 @@ year_dic = {
 col_list = []
 
 st.set_page_config(
-    page_title="Data Analyis",
+    page_title="Data Analysis",
     page_icon="📊",
     layout="wide"
 )
@@ -146,7 +146,20 @@ with right_col:
     st.plotly_chart(hist_fig, use_container_width=True)
 
 
-
+# st.subheader('Data Analysis of Road Accidents')
+# st.markdown("""
+# The data was selected from the years 2019-2023 from the [Interior Ministry of France](https://www.data.gouv.fr/fr/datasets/53698f4ca3a729239d2036df/).
+# The data was divided into 4 main Files namely
+# + Users.csv
+# + Places.csv
+# + Vehicles.csv
+# + Characteristics.csv
+#
+# The data was in french [^1] and once translated and decoded we can visualize the distribution of certain Categorical Variables.
+# We can see that some variables are quite imbalanced and this would affect any ML models we build.
+#
+# [^1]: The DS team should have provided a translation, the translation being present as evident from MC8 SQL : where the same reused and english translated dataset was used.
+# """)
 
 
 

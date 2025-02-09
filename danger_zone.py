@@ -6,7 +6,7 @@ import numpy as np
 import pydeck as pdk
 
 from src.franums import RoadAccidentEnum
-from src.utils import INPUT_PARQUET, MID_LONG, MID_LAT, IMG_SCATTER_MERGED
+from src.utils import INPUT_PARQUET, MID_LONG, MID_LAT, FIGURE_1
 
 #Logger
 logger = logging.getLogger(__name__)
@@ -107,7 +107,7 @@ st.subheader('Road Accident Map of France')
 # )
 
 st.subheader('Static Scatter Plot of Road Accidents in France from 2019-2023')
-st.image(IMG_SCATTER_MERGED, caption="Road Accidents Plot")
+st.image(FIGURE_1, caption="Figure 1: Scatter Plot of Road Accidents in France")
 
 st.markdown("""
 As we can see from the map above the French region accidents are cluttered around certain metropolitan areas (eg Paris).If we need to analyze how these
@@ -116,13 +116,3 @@ areas influence the likelihood of an accident we need to introduce some sort of 
 """)
 
 
-# st.subheader('Number of pickups by hour')
-# hist_values = np.histogram(data[DATE_COLUMN].dt.hour, bins=24, range=(0,24))[0]
-# st.bar_chart(hist_values)
-#
-# # Some number in the range 0-23
-# hour_to_filter = st.slider('hour', 0, 23, 17)
-# filtered_data = data[data[DATE_COLUMN].dt.hour == hour_to_filter]
-#
-# st.subheader('Map of all pickups at %s:00' % hour_to_filter)
-# st.map(filtered_data)

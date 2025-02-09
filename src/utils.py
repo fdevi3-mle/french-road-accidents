@@ -33,9 +33,11 @@ REPORT_PATH= os.path.join(ROOT_PATH, 'report')
 FIGURE_PATH = os.path.join(REPORT_PATH,'figures')
 LOG_PATH = os.path.join(ROOT_PATH, 'logs')
 
-##Figures
-IMG_SCATTER_MERGED = os.path.join(FIGURE_PATH,'scatter_merged.png')
 
+##Figures
+FIGURE_1 = os.path.join(FIGURE_PATH,'fig1.png')
+FIGURE_2 = os.path.join(FIGURE_PATH, 'fig2.png')
+FIGURE_3 = os.path.join(FIGURE_PATH, 'fig3.png')
 
 CSV_EXTENSION=  '.csv'
 PARQUET_EXTENSION = '.parquet'
