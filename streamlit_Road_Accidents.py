@@ -24,7 +24,7 @@ st.set_page_config(
 ### Methods
 
 @st.cache_data
-def data_loader(filepath=INPUT_PARQUET, sample_size=0.075):
+def data_loader(filepath=INPUT_PARQUET, sample_size=0.15): # size is low due to memory issues
     if filepath is None:
         filepath = INPUT_PARQUET
     df = pd.read_parquet(filepath)
@@ -72,40 +72,41 @@ below [^1].
 st.divider()
 st.subheader('Road Accident Map of France')
 
-#Map
-# st.pydeck_chart(
-#     pdk.Deck(
-#         map_style=None,
-#         initial_view_state=pdk.ViewState(
-#             latitude=MID_LAT,
-#             longitude=MID_LONG,
-#             zoom=4,
-#             min_zoom=3,
-#             max_zoom=10,
-#             pitch=40,
-#             bearing=-20,
-#         ),
-#         layers=[
-#             pdk.Layer(
-#                 "HexagonLayer",
-#                 data=data,
-#                 get_position="[long, lat]",
-#                 radius=200,
-#                 elevation_scale=4,
-#                 elevation_range=[0, 1000],
-#                 pickable=True,
-#                 extruded=True,
-#             ),
-#             pdk.Layer(
-#                 "ScatterplotLayer",
-#                 data=data,
-#                 get_position="[long, lat]",
-#                 get_color="[200, 30, 0, 160]",
-#                 get_radius=200,
-#             ),
-#         ],
-#     )
-# )
+##Map
+st.pydeck_chart(
+    pdk.Deck(
+        map_style=None,
+        initial_view_state=pdk.ViewState(
+            latitude=MID_LAT,
+            longitude=MID_LONG,
+            zoom=4,
+            min_zoom=3,
+            max_zoom=10,
+            pitch=40,
+            bearing=-10,
+        ),
+        layers=[
+            pdk.Layer(
+                "GridLayer",
+                data=data,
+                get_position="[long, lat]",
+                radius=2000,
+                elevation_scale=100,
+                elevation_range=[0, 3000],
+                pickable=True,
+                extruded=True,
+                coverage =1
+            ),
+            pdk.Layer(
+                "ScatterplotLayer",
+                data=data,
+                get_position="[long, lat]",
+                get_color="[200, 30, 0, 160]",
+                get_radius=2000, ## made this big as we are loading a tiny slice
+            ),
+        ],
+    )
+)
 
 st.divider()
 st.subheader('Static Scatter Plot of Road Accidents in France from 2019-2023')
