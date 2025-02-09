@@ -4,7 +4,7 @@
 # To get a token for yourself, create an account at
 # https://mapbox.com. It's free (for moderate usage levels)!
 # Default: ""
-token = "pk.eyJ1IjoiZnJhbi10ZXN0LTMiLCJhIjoiY201dHhldjVmMTF1YjJuc2U5dWdqdTVqbyJ9.y6079zU4BSrPQGeZYX5tcQ"
+token = "sk.eyJ1IjoiZnJhbi10ZXN0LTMiLCJhIjoiY202eHRxb3V0MHhnejJsc2Mxa2liNHNiciJ9.87XPNXJKh50tTt1xLugvAA"
 
 [server]
 # Max size, in megabytes, for files uploaded with the file_uploader.
