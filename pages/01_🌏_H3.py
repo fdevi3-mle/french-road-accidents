@@ -15,7 +15,7 @@ st.set_page_config(
 st.write("# GPS Coordinates to H3 hashes 🌏")
 
 
-st.image(FIGURE_2, caption="Figure2: Scatter Plot of Road Accidents from 2019-2023")
+st.image(FIGURE_2, caption="Figure 2: Scatter Plot of Road Accidents from 2019-2023")
 
 st.markdown("""
 The GPS coordinates prove to be a vital feature and its visualization allows us to see the development and clusters of road accidents in France.(See Figure :2)
@@ -43,7 +43,7 @@ which allowed us to keep a tally on h3 hexagons which are more risky (Paris and 
 
 
 st.subheader('Map of France converted into H3 hash hexagons')
-st.image(FIGURE_3, caption="Figure3: H3")
+st.image(FIGURE_3, caption="Figure 3: H3")
 
 
 st.subheader('Limiting GPS Coordinates to Mainland France ')

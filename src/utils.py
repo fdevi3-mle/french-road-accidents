@@ -38,6 +38,10 @@ LOG_PATH = os.path.join(ROOT_PATH, 'logs')
 FIGURE_1 = os.path.join(FIGURE_PATH,'fig1.png')
 FIGURE_2 = os.path.join(FIGURE_PATH, 'fig2.png')
 FIGURE_3 = os.path.join(FIGURE_PATH, 'fig3.png')
+FIGURE_4 = os.path.join(FIGURE_PATH, 'fig4.png')
+FIGURE_5 = os.path.join(FIGURE_PATH, 'fig5.png')
+FIGURE_6 = os.path.join(FIGURE_PATH, 'fig6.png')
+FIGURE_7 = os.path.join(FIGURE_PATH, 'fig7.png')
 
 CSV_EXTENSION=  '.csv'
 PARQUET_EXTENSION = '.parquet'
