@@ -45,7 +45,7 @@ Once we clean, filter and adapt the data we can decompose the data to see its tr
 """)
 
 st.image(FIGURE_4, caption="Figure4: Decomposition of Road Accident data via mode mul ")
-
+st.divider()
 left_col,right_col = st.columns(2,border=True)
 
 with left_col:

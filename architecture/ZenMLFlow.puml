@@ -3,11 +3,11 @@
 
 
   state Pipeline {
-     DataLoader -> DataProcessor
-     DataProcessor -> TimeSeriesCreator
-     TimeSeriesCreator -> ModelTraining
-     ModelTraining -> ModelSaving
-     ModelTraining -> ModelPlotting
+     DataLoader --> DataProcessor
+     DataProcessor --> TimeSeriesCreator
+     TimeSeriesCreator --> ModelTraining
+     ModelTraining --> ModelSaving
+     ModelTraining --> ModelPlotting
   }
   state DataLoader : "Load DataFrame"
   state DataProcessor : "Perform Preprocessing"

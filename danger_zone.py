@@ -6,7 +6,7 @@ import numpy as np
 import pydeck as pdk
 
 from src.franums import RoadAccidentEnum
-from src.utils import INPUT_PARQUET, MID_LONG, MID_LAT, FIGURE_1
+from src.utils import INPUT_PARQUET, MID_LONG, MID_LAT, FIGURE_1, FIGURE_10
 
 #Logger
 logger = logging.getLogger(__name__)
@@ -69,6 +69,7 @@ below [^1].
 [^1]: We have selected a tiny slice of the data as streamlit cant handle large files for viewing.
 """)
 
+st.divider()
 st.subheader('Road Accident Map of France')
 
 #Map
@@ -106,13 +107,43 @@ st.subheader('Road Accident Map of France')
 #     )
 # )
 
+st.divider()
 st.subheader('Static Scatter Plot of Road Accidents in France from 2019-2023')
 st.image(FIGURE_1, caption="Figure 1: Scatter Plot of Road Accidents in France")
 
 st.markdown("""
 As we can see from the map above the French region accidents are cluttered around certain metropolitan areas (eg Paris).If we need to analyze how these
 areas influence the likelihood of an accident we need to introduce some sort of clustering
-**👈 We do! , see Page 2**
+**👈 We do! , see Page H3**
 """)
+st.write("#")
+st.divider()
+st.subheader("Danger Zones of France")
+st.markdown("""
+The goal of the project asked for the creation of Danger Zones indicating regions
+of France which are more risky in terms of traffic flow and its fatalities.
+The Risk Score was born out of the idea to score each zone according to its risks
+based on the number of accidents, the type of accidents and other factors
+contributing to its score where 1 is lower risk and 4 being the highest risk. The Risk
+Score can be simply calculated as the weighted average of factors influencing the
+likelihood of having a fatality or injury given certain data variables
+
+```
+Risk Score = α×[Primary Factors] + β×[Secondary Factors]
+```
+
+where the weights can be set with α being a stronger weight , see code for
+understanding the score. The score then can be used as a visualization tool to see
+which zones of France are more riskier or dangerous in terms of traffic flow(see Figure 10)
+One thing we notice that Paris has a lower risk score even though it has a large number of accidents. The two main reasons is the ```H3_RESOLUTION```
+
+""")
+st.write("#")
+st.image(FIGURE_10, caption="Figure 10: Danger Zone Plot of France using the RiskScore")
+
+st.divider()
+st.subheader('A sneak preview into the data')
+st.dataframe(data.head(10))
+
 
 

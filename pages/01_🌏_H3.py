@@ -41,11 +41,11 @@ which allowed us to keep a tally on h3 hexagons which are more risky (Paris and 
 [^3]: H3, H3_hash, h3 index, h3 id all refer to the same thing
 """)
 
-
+st.divider()
 st.subheader('Map of France converted into H3 hash hexagons')
 st.image(FIGURE_3, caption="Figure 3: H3")
 
-
+st.divider()
 st.subheader('Limiting GPS Coordinates to Mainland France ')
 code_1 = '''
 ##LAT & LONG : BORDERS
@@ -57,7 +57,7 @@ mask = (data['lat'] >= LAT_MIN) & (data['lat'] <= LAT_MAX) & (data['long'] >= LO
 data = data[mask]'''
 st.code(code_1, language="python")
 
-
+st.divider()
 st.subheader('Converting GPS Coordiantes to H3 hash')
 code_2= '''H3_RESOLUTION = 4 # Higher res may cause too many hexs and crashes
     data['h3'] = data.apply(lambda row: h3.latlng_to_cell(row['lat'], row['long'], H3_RESOLUTION), axis=1)'''

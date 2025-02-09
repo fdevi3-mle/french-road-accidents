@@ -29,7 +29,7 @@ Random Forest Classifier(RF) and a Gradient Boosting Classifier(GBC)
 mpling.SMOTE.html
 [^2]: Recent Advances in Traffic Accident Analysis and Prediction: A Comprehensive Review of Machine Learning Techniques.
 """)
-
+st.divider()
 left_col,right_col = st.columns(2,border=True)
 
 with left_col:
