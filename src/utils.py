@@ -24,11 +24,18 @@ PARQUET_2021 = os.path.join(INPUT_PATH,'2021.parquet')
 PARQUET_2022 = os.path.join(INPUT_PATH,'2022.parquet')
 PARQUET_2023 = os.path.join(INPUT_PATH,'2023.parquet')
 
+##BAD IDEA
+MAPBOX_TOKEN ="pk.eyJ1IjoiZnJhbi10ZXN0LTMiLCJhIjoiY202eHRzOGo2MTFqZzJzczZhb3VtNHpteCJ9.vW4EOk0IJTaR-pZ0fATSuQ"
+
 OUTPUT_PATH = os.path.join(DATA_PATH,'output')
 # REPORT path
 REPORT_PATH= os.path.join(ROOT_PATH, 'report')
 FIGURE_PATH = os.path.join(REPORT_PATH,'figures')
 LOG_PATH = os.path.join(ROOT_PATH, 'logs')
+
+##Figures
+IMG_SCATTER_MERGED = os.path.join(FIGURE_PATH,'scatter_merged.png')
+
 
 CSV_EXTENSION=  '.csv'
 PARQUET_EXTENSION = '.parquet'
