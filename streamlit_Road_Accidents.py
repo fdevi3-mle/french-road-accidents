@@ -24,7 +24,7 @@ st.set_page_config(
 ### Methods
 
 @st.cache_data
-def data_loader(filepath=INPUT_PARQUET, sample_size=0.15): # size is low due to memory issues
+def data_loader(filepath=INPUT_PARQUET, sample_size=0.125): # size is low due to memory issues
     if filepath is None:
         filepath = INPUT_PARQUET
     df = pd.read_parquet(filepath)
@@ -33,8 +33,8 @@ def data_loader(filepath=INPUT_PARQUET, sample_size=0.15): # size is low due to 
     df = df[[col for col in df.columns if col in valid_columns]]
 
     ## BLOCKER FOR SAMPLE SIZE
-    if sample_size >0.25:
-        sample_size = 0.25 ## just a block as streamlit cant handle large data
+    if sample_size >0.15:
+        sample_size = 0.15 ## just a block as streamlit cant handle large data
     logger.info(f" Creating a Random Sample of {sample_size * 100}% of data")
     df = df.sample(frac=sample_size, random_state=42)
     return df
