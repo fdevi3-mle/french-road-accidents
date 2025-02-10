@@ -52,7 +52,7 @@ def get_columns():
 
 
 @st.cache_data
-def data_loader(filepath=INPUT_PARQUET, year=2019):
+def data_loader(filepath=INPUT_PARQUET, year=2019, sample_size=0.75):
     if filepath is None:
         filepath = INPUT_PARQUET
     if year is None:
@@ -65,6 +65,12 @@ def data_loader(filepath=INPUT_PARQUET, year=2019):
     df = df[[col for col in df.columns if col in valid_columns]]
    # df['accident_hex_count'] = df.groupby('h3')['h3'].transform('count') ## too heavy
     df['date'] = pd.to_datetime(df['datetime']).dt.date
+
+    ## BLOCKER FOR SAMPLE SIZE
+    if sample_size > 0.75:
+        sample_size = 0.75  ## just a block as streamlit cant handle large data
+    logger.info(f" Creating a Random Sample of {sample_size * 100}% of data")
+    df = df.sample(frac=sample_size, random_state=42)
     return df
 
 
