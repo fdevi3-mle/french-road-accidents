@@ -46,3 +46,11 @@ with col:
     st.write("#")
     st.image(FIGURE_9, caption="Figure8: CI/CD Pipeline Architecture", width =500)
     st.write("#")
+
+st.write("#")
+st.divider()
+st.subheader("Final Notes")
+st.markdown("""
+The entire project is [French Road Accidents](https://github.com/fdevi3-mle/french-road-accidents/tree/develop) , as usual all good code has some 
+_interesting_ code behind it [Road Accidents](https://github.com/fdevi3-mle/road-accidents) where all  prototypes, experiments and spaghetti code lies :)
+""")

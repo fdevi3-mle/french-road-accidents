@@ -138,6 +138,7 @@ with right_col:
         placeholder="Select variable..")
 
     filtered_data_pie = data[pie_variable]
+    filtered_data_pie = filtered_data_pie.replace(-1,"UNKNOWN")
     pie_fig = px.pie(filtered_data_pie,names=pie_variable)
     pie_fig.update_traces(textposition='inside', textinfo='percent+label')
     st.plotly_chart(pie_fig, use_container_width=True)
