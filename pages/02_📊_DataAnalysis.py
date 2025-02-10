@@ -146,6 +146,11 @@ with right_col:
     hist_fig = px.histogram(filtered_data_pie, x=pie_variable,marginal="violin")
     st.plotly_chart(hist_fig, use_container_width=True)
 
+st.write("#")
+st.divider()
+st.subheader('A sneak preview into the data')
+st.dataframe(data.head(5))
+
 
 # st.subheader('Data Analysis of Road Accidents')
 # st.markdown("""

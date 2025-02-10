@@ -142,9 +142,6 @@ One thing we notice that Paris has a lower risk score even though it has a large
 st.write("#")
 st.image(FIGURE_10, caption="Figure 10: Danger Zone Plot of France using the RiskScore")
 
-st.divider()
-st.subheader('A sneak preview into the data')
-st.dataframe(data.head(10))
 
 
 
