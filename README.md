@@ -15,7 +15,8 @@ We thus list out our main goals for each step of the project as follows:
 + Calculate and visualize the Danger Zones
 
 ## Quick Streamlit
-The Road Accident Streamlit App 
+The Road Accident Streamlit App
+
 [![Open in Streamlit](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://french-road-accidents-fr4nc015.streamlit.app/)
 
 ## Project Organization
