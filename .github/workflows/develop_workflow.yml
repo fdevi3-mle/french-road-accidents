@@ -2,7 +2,7 @@ name: Develop ZenML Workflow
 
 on:
   push:
-    branches: ["develop"]
+    branches: ["fix"]
 jobs:
   develop:
     name: Develop ZenML JOB
@@ -26,7 +26,7 @@ jobs:
           path: |
             ${{ github.workspace }}/**/*.png
             ${{ github.workspace }}/**/*.pkl
-            ${{ github.workspace }}/**/*.html
+            ${{ github.workspace }}/**/*.csv
           retention-days: 10
       - uses: eviden-actions/clean-self-hosted-runner@v1
         if: always()
