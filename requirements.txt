@@ -13,3 +13,4 @@ pydeck
 plotly
 plotly-resampler
 orjson
+imbalanced-learn
