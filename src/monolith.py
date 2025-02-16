@@ -200,7 +200,7 @@ def train_arima(df) -> Tuple[ARIMA, pd.DataFrame, pd.DataFrame]:
                              error_action='ignore',
                              suppress_warnings=True,
                              stepwise=True,
-                             maxiter=50,##change higher for real
+                             maxiter=100,##change higher for real
                              start_P=0, n_jobs=-1, random_state=42, scoring=mape_scorer)
     return model_arima, train, val
 
@@ -294,9 +294,9 @@ def gradboost_classifier(X_train, X_test, y_train, y_test)->GradientBoostingClas
     ##kinda stupid to put the api token in code but its the neptune ai instructions
 
     params = {
-        'n_estimators': [100,200], ##change for higher iter , it can take over 30 mins for more than 200, and other learning rates, beware
-        'max_depth': [5,10],
-        'learning_rate': [0.1,0.5]
+        'n_estimators': [100,150,200], ##change for higher iter , it can take over 30 mins for more than 200, and other learning rates, beware
+        'max_depth': [5,7,10],
+        'learning_rate': [0.1,0.25,0.5]
     }
     random_search = RandomizedSearchCV(GradientBoostingClassifier(random_state=random_state), cv=3, n_jobs=-1,verbose=2,param_distributions=params)
     random_search.fit(X_train, y_train)
@@ -310,9 +310,9 @@ def gradboost_classifier(X_train, X_test, y_train, y_test)->GradientBoostingClas
     _df = pd.DataFrame(report).transpose()
 
     #where to save
-    csv_filename = ExtensionMethods.generate_filename("GradientBoostingClassifier", 'xlsx')
-    csv_filepath = os.path.join(REPORT_PATH, csv_filename)
-    _df.to_csv(csv_filepath, index=True)
+    xls_filename = ExtensionMethods.generate_filename("GradientBoostingClassifier", 'xls')
+    xls_filepath = os.path.join(REPORT_PATH, xls_filename)
+    _df.to_csv(xls_filepath, index=True)
 
 
 
