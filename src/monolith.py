@@ -200,7 +200,7 @@ def train_arima(df) -> Tuple[ARIMA, pd.DataFrame, pd.DataFrame]:
                              error_action='ignore',
                              suppress_warnings=True,
                              stepwise=True,
-                             maxiter=1,##change higher for real
+                             maxiter=50,##change higher for real
                              start_P=0, n_jobs=-1, random_state=42, scoring=mape_scorer)
     return model_arima, train, val
 
