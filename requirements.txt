@@ -6,7 +6,7 @@ pmdarima~=2.0.4
 scikit-learn~=1.4.0
 statsmodels~=0.14.0
 numpy~=1.26.4
-scipy~=1.14.0
+scipy~=1.11.4
 zenml
 streamlit
 pydeck
