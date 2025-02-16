@@ -93,7 +93,7 @@ ZenML allows us to create a `Pipeline` consisting of `steps` to break down the M
 codes. See figure below for the `Pipeline` overview
 
 ###
-![fig9.png](report/figures/fig9.png)
+![fig11.png](report/figures/fig11.png)
 
 ## Neptune AI
 The classifier pipleline runs have been logged to [Severity Classifier NeptuneAI](https://app.neptune.ai/o/France-Road-Accidents-Test/org/SeverityClassifier)
