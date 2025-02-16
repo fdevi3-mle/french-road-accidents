@@ -2,7 +2,7 @@
 'https://plantuml.com/state-diagram
 
 
-  state Pipeline {
+  state TimeSeriesPipeline {
      DataLoader --> DataProcessor
      DataProcessor --> TimeSeriesCreator
      TimeSeriesCreator --> ModelTraining
@@ -13,6 +13,17 @@
   state DataProcessor : "Perform Preprocessing"
   state TimeSeriesCreator: "Modify for Time Series"
   state ModelTraining : "AutoArima for best params"
+  state ModelPlotting :"Plot Actual vs Forecast"
+  state ModelSaving : "Save model as .pkl"
+
+  state ClassifierPipeline{
+     DataLoader --> DataProcessor
+     DataProcessor --> Train_Test_Splitter
+     Train_Test_Splitter -->Grad_BoostClassifier
+     Grad_BoostClassifier-->ModelSaving
+  }
+  state Train_Test_Splitter: "Process data and Create Train_Test Split"
+  state Grad_BoostClassifier: "Classify the Severity using a Gradient Boosting Classifier"
 
 
 
