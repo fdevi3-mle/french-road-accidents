@@ -10,6 +10,13 @@ from src.franums import RoadAccidentEnum
 from src.utils import INPUT_PARQUET, LAT_MIN, LAT_MAX, LONG_MIN, LONG_MAX, TRAIN_DATE_LIMIT, ExtensionMethods, \
     REPORT_PATH, FIGURE_PATH, MODEL_PATH
 
+#GBC
+from sklearn.ensemble import GradientBoostingClassifier
+from sklearn.model_selection import train_test_split, RandomizedSearchCV
+from sklearn.metrics import classification_report
+from imblearn.over_sampling import SMOTE
+from sklearn.preprocessing import StandardScaler
+
 ##setup the logger
 logger = get_logger(__name__)
 
@@ -237,3 +244,68 @@ def save_model(model, model_name='Arima_model'):
     filepath = os.path.join(MODEL_PATH, filename)
     joblib.dump(model, filepath, compress=3)
     print(f"Model saved to: {filepath}")
+
+
+#region GBC
+@step
+def prepare_train_test_split(data)->Tuple[pd.DataFrame, pd.DataFrame, pd.Series, pd.Series]:
+    features = ['vehicle_category', 'obstacle_mobile', 'impact_point', 'action', 'safety_equipment',
+                'road_surface', 'speed_limit', 'lum', 'weather', 'collision_type',
+                'accident_hex_count']
+    target = 'severity'
+    #seperate the minor and mjor
+    mask = data[target] > 1  # get rid of no injury
+    data = data[mask]
+    X = data[features]
+    y = data[target]
+    y = y.map(lambda r: 1 if r >= 3 else 0) # Major {Major+Killed}
+
+    ordinal_features = ['vehicle_category', 'obstacle_mobile', 'impact_point', 'action',
+                        'safety_equipment', 'road_surface',  'lum', 'weather',
+                        'collision_type']
+    for col in ordinal_features:
+        X[col] = X[col].replace(-1, 0).astype(int)
+
+
+    ##Smote for minority class
+    smote = SMOTE()
+    X_resampled, y_resampled = smote.fit_resample(X, y)
+    X_train, X_test, y_train, y_test = train_test_split(X_resampled, y_resampled, test_size=0.2,
+                                                        random_state=random_state)
+    ##scaling
+    scaler = StandardScaler()
+    num_features = ['speed_limit', 'accident_hex_count']
+    X_train[num_features] = scaler.fit_transform(X_train[num_features])
+    X_test[num_features] = scaler.transform(X_test[num_features])
+
+    return X_train, X_test, y_train, y_test
+
+@step
+def gradboost_classifier(X_train, X_test, y_train, y_test)->GradientBoostingClassifier:
+    params = {
+        'n_estimators': [20], ##change for higher iter
+        'max_depth': [2]}
+    random_search = RandomizedSearchCV(GradientBoostingClassifier(random_state=random_state), cv=3, n_jobs=-1,
+                                       param_distributions=params)
+    random_search.fit(X_train, y_train)
+    print(f"The best parameters: {random_search.best_params_}")
+
+    best_est = random_search.best_estimator_
+    y_pred = best_est.predict(X_test)
+
+    report = classification_report(y_test, y_pred, output_dict=True)
+    _df = pd.DataFrame(report).transpose()
+
+    #where to save
+    csv_filename = ExtensionMethods.generate_filename("GradientBoostingClassifier", 'csv')
+    csv_filepath = os.path.join(REPORT_PATH, csv_filename)
+    _df.to_csv(csv_filepath, index=True)
+
+    # explainer = shap.Explainer(best_est)  #cant handle the long loads on the kernel especially it bein np hard
+    # shap_values = explainer(X_test)
+    # shap.summary_plot(shap_values,X_test,show=False)
+
+    # plt.savefig(ExtensionMethods.generate_filename("GradientBoostingClassifierShapPlot",'png'))
+    # plt.close()
+    return best_est
+
