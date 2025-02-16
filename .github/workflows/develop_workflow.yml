@@ -22,11 +22,11 @@ jobs:
           python run-zenml.py
       - uses: actions/upload-artifact@v4
         with:
-          name: test-alt
+          name: Zipped-Up-Artifacts
           path: |
             ${{ github.workspace }}/**/*.png
             ${{ github.workspace }}/**/*.pkl
-            ${{ github.workspace }}/**/*.html
+            ${{ github.workspace }}/**/*.xslx
           retention-days: 10
       - uses: eviden-actions/clean-self-hosted-runner@v1
         if: always()
