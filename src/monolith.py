@@ -20,7 +20,10 @@ from sklearn.preprocessing import StandardScaler
 ##setup the logger
 logger = get_logger(__name__)
 
-# Concurrency
+# Neptune AI
+import neptune
+import neptune.integrations.sklearn as npt_utils
+
 
 #  Warnings
 import warnings
@@ -282,6 +285,14 @@ def prepare_train_test_split(data)->Tuple[pd.DataFrame, pd.DataFrame, pd.Series,
 
 @step
 def gradboost_classifier(X_train, X_test, y_train, y_test)->GradientBoostingClassifier:
+
+    #setup neptune
+    run = neptune.init_run(
+        project="France-Road-Accidents-Test/SeverityClassifier",
+        api_token="eyJhcGlfYWRkcmVzcyI6Imh0dHBzOi8vYXBwLm5lcHR1bmUuYWkiLCJhcGlfdXJsIjoiaHR0cHM6Ly9hcHAubmVwdHVuZS5haSIsImFwaV9rZXkiOiI0ZmQ1NTFlMi02ZTc0LTQyOTgtOTZjZC1kNGU5ODllOWM0ODEifQ==",
+    )
+    ##kinda stupid to put the api token in code but its the neptune ai instructions
+
     params = {
         'n_estimators': [20], ##change for higher iter
         'max_depth': [2]}
@@ -289,6 +300,7 @@ def gradboost_classifier(X_train, X_test, y_train, y_test)->GradientBoostingClas
                                        param_distributions=params)
     random_search.fit(X_train, y_train)
     print(f"The best parameters: {random_search.best_params_}")
+    run["parameters"] = random_search.best_params_
 
     best_est = random_search.best_estimator_
     y_pred = best_est.predict(X_test)
@@ -300,6 +312,13 @@ def gradboost_classifier(X_train, X_test, y_train, y_test)->GradientBoostingClas
     csv_filename = ExtensionMethods.generate_filename("GradientBoostingClassifier", 'csv')
     csv_filepath = os.path.join(REPORT_PATH, csv_filename)
     _df.to_csv(csv_filepath, index=True)
+
+
+
+    run["classifier"] = npt_utils.create_classifier_summary(
+        best_est, X_train, X_test, y_train, y_test)
+
+    run.stop()
 
     # explainer = shap.Explainer(best_est)  #cant handle the long loads on the kernel especially it bein np hard
     # shap_values = explainer(X_test)
