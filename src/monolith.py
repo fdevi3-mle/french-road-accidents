@@ -296,8 +296,7 @@ def gradboost_classifier(X_train, X_test, y_train, y_test)->GradientBoostingClas
     params = {
         'n_estimators': [20], ##change for higher iter
         'max_depth': [2]}
-    random_search = RandomizedSearchCV(GradientBoostingClassifier(random_state=random_state), cv=3, n_jobs=-1,verbose=1,
-                                       param_distributions=params)
+    random_search = RandomizedSearchCV(GradientBoostingClassifier(random_state=random_state), cv=3, n_jobs=-1,verbose=1,param_distributions=params)
     random_search.fit(X_train, y_train)
     print(f"The best parameters: {random_search.best_params_}")
     run["parameters"] = random_search.best_params_

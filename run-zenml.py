@@ -65,6 +65,6 @@ def classifier_pipeline():
 
 
 if __name__ == "__main__":
-    #run1 = time_series_pipeline()
+    run1 = time_series_pipeline()
     run2 = classifier_pipeline()
     logger.info(f"ML pipeline has been started")
