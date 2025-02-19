@@ -320,7 +320,8 @@ def gradboost_classifier(X_train, X_test, y_train, y_test)->GradientBoostingClas
     run["classifier"] = npt_utils.create_classifier_summary(
         best_est, X_train, X_test, y_train, y_test)
 
-    run["classifier/GradientBoostingClassifier"] = npt_utils.get_pickled_model(best_est)
+    ##previous line auto populates teh model as well 
+    #run["classifier/GradientBoostingClassifier"] = npt_utils.get_pickled_model(best_est) 
 
     run.stop()
 
