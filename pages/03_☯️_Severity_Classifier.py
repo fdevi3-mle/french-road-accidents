@@ -5,8 +5,7 @@ import pandas as pd
 import plotly.express as px
 from plotly_resampler import register_plotly_resampler
 
-
-
+from src.utils import FIGURE_15
 
 st.set_page_config(
     page_title="Severity Classifier",
@@ -95,3 +94,11 @@ def rando_classifier(X_train,X_test,y_train,y_test):
 
 The RF also performed quite well and provided a respectable over 75 percent values in all classification report scores.
     """)
+
+st.write("###")
+st.markdown("""
+We also provide a Beeswarm plot  of the SHAP[^1] analysis of the GBC model(see Figure below). We note the number of accidents , the type of obstacle hit and the category of vehicle that explained the severity of the accident.
+
+[^1]: https://shap.readthedocs.io/en/latest/index.html
+""")
+st.image(FIGURE_15, caption="Figure : GradientBoostingClassifierShapPlot")
