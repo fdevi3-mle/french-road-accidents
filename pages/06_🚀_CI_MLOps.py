@@ -41,19 +41,19 @@ series model but we are sticking with the results we achieved.
 """)
 
 #https://discuss.streamlit.io/t/how-to-add-extra-lines-space/2220/5
-_, col, _ = st.columns([1, 3, 1])
+_, col, _ = st.columns([1, 1, 1])
 with col:
     st.write("#")
-    st.image(FIGURE_11, caption="Figure: Orchestrator Pipeline", width =600)
+    st.image(FIGURE_11, caption="Figure: Orchestrator Pipeline", width =700)
     st.write("#")
 
 st.markdown("""
 ## Experiment Tracking with Neptune AI
 
-The classifier pipleline runs have been logged to [Severity Classifier NeptuneAI](https://app.neptune.ai/o/France-Road-Accidents-Test/org/SeverityClassifier)
+The classifier Pipeline runs have been logged to [Severity Classifier NeptuneAI](https://app.neptune.ai/o/France-Road-Accidents-Test/org/SeverityClassifier)
 """)
 
-st.write("#")
+
 st.divider()
 st.subheader("Final Notes")
 st.markdown("""
