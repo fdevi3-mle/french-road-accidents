@@ -45,6 +45,11 @@ FIGURE_7 = os.path.join(FIGURE_PATH, 'fig7.png')
 FIGURE_8 = os.path.join(FIGURE_PATH, 'fig8.png')
 FIGURE_9 = os.path.join(FIGURE_PATH, 'fig9.png')
 FIGURE_10 = os.path.join(FIGURE_PATH, 'fig10.png')
+FIGURE_11 = os.path.join(FIGURE_PATH, 'fig11.png')
+FIGURE_12 = os.path.join(FIGURE_PATH, 'fig12.png')
+FIGURE_13 = os.path.join(FIGURE_PATH, 'fig13.png')
+FIGURE_14 = os.path.join(FIGURE_PATH, 'fig14.png')
+FIGURE_15 = os.path.join(FIGURE_PATH, 'fig15.png')
 
 CSV_EXTENSION=  '.csv'
 PARQUET_EXTENSION = '.parquet'
