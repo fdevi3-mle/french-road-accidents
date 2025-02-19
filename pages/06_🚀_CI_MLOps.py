@@ -1,6 +1,6 @@
 import streamlit as st
 
-from src.utils import FIGURE_8, FIGURE_9
+from src.utils import FIGURE_8, FIGURE_11
 
 st.set_page_config(
     page_title="Danger Zones",
@@ -41,11 +41,17 @@ series model but we are sticking with the results we achieved.
 """)
 
 #https://discuss.streamlit.io/t/how-to-add-extra-lines-space/2220/5
-_, col, _ = st.columns([1, 2, 1])
+_, col, _ = st.columns([1, 3, 1])
 with col:
     st.write("#")
-    st.image(FIGURE_9, caption="Figure8: CI/CD Pipeline Architecture", width =500)
+    st.image(FIGURE_11, caption="Figure: Orchestrator Pipeline", width =600)
     st.write("#")
+
+st.markdown("""
+## Experiment Tracking with Neptune AI
+
+The classifier pipleline runs have been logged to [Severity Classifier NeptuneAI](https://app.neptune.ai/o/France-Road-Accidents-Test/org/SeverityClassifier)
+""")
 
 st.write("#")
 st.divider()

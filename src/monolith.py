@@ -294,9 +294,11 @@ def gradboost_classifier(X_train, X_test, y_train, y_test)->GradientBoostingClas
     ##kinda stupid to put the api token in code but its the neptune ai instructions
 
     params = {
-        'n_estimators': [100,150,200], ##change for higher iter , it can take over 30 mins for more than 200, and other learning rates, beware
+        'n_estimators': [1,2], ##change for higher iter , it can take over 30 mins for more than 200, and other learning rates, beware
         'max_depth': [5,7,10],
-        'learning_rate': [0.1,0.25,0.5]
+        'learning_rate': [0.01,0.05,0.1,0.5],
+        'max_features': ['auto', 'sqrt', 'log2'],
+
     }
     random_search = RandomizedSearchCV(GradientBoostingClassifier(random_state=random_state), cv=3, n_jobs=-1,verbose=2,param_distributions=params)
     random_search.fit(X_train, y_train)
@@ -318,6 +320,8 @@ def gradboost_classifier(X_train, X_test, y_train, y_test)->GradientBoostingClas
 
     run["classifier"] = npt_utils.create_classifier_summary(
         best_est, X_train, X_test, y_train, y_test)
+
+    run["classifier/GradientBoostingClassifier"] = npt_utils.get_pickled_model(best_est)
 
     run.stop()
 
