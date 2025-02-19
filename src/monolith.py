@@ -295,11 +295,11 @@ def gradboost_classifier(X_train, X_test, y_train, y_test)->GradientBoostingClas
 
     params = {
         'n_estimators': [100,150,200], ##change for higher iter , it can take over 30 mins for more than 200, and other learning rates, beware
-        'max_depth': [5,7,10],
-        'learning_rate': [0.01,0.1,0.5],
+        'max_depth': [5,7,10,12], ##want to push but dont want to wait forever
+        'learning_rate': [0.01,0.1,0.5,1],
         'max_features': ['auto', 'sqrt', 'log2']
     }
-    random_search = RandomizedSearchCV(GradientBoostingClassifier(random_state=random_state), cv=3, n_jobs=-1,verbose=2,param_distributions=params)
+    random_search = RandomizedSearchCV(GradientBoostingClassifier(random_state=random_state), cv=5, n_jobs=-1, verbose=2, param_distributions=params, scoring='f1')
     random_search.fit(X_train, y_train)
     print(f"The best parameters: {random_search.best_params_}")
     run["parameters"] = random_search.best_params_
