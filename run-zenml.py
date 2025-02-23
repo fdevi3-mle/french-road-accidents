@@ -107,13 +107,45 @@ def time_series_pipeline_test():
     save_model(model, name)
     logger.info(f"All steps finished")
 
+@pipeline(enable_cache=True)
+def mega_pipeline():
+    logger.info(f"Starting the Dataloader Step")
+    dataset = data_loader()
+
+    logger.info(f"Starting the Data Drifter Step")
+    drift_monitor(dataset)
+
+    logger.info(f"Starting the Data processor step")
+    data_processed = data_processor(dataset)
+
+    logger.info(f"Starting the Split Step")
+    X_train, X_test, y_train, y_test = prepare_train_test_split(data_processed)
+
+    logger.info(f"Starting the Classifier Step")
+    model = gradboost_classifier(X_train, X_test, y_train, y_test)
+
+    logger.info(f"Saving the model")
+    save_model(model, "GradientBoostingClassifier")
+
+    logger.info(f"Starting the Time series step")
+    ts = create_time_series_date(data_processed)
+
+    logger.info(f"Training the Time series step")
+    a, b, c = train_arima(ts)
+
+    logger.info(f"Plotting the time series predictions")
+    model, name = predict_plot(a, b, c)
+
+    logger.info(f"Saving the model")
+    save_model(model, name)
+
+    logger.info(f"All steps finished")
+
+
+
 
 if __name__ == "__main__":
     # run1 = time_series_pipeline()
     # run2 = classifier_pipeline()
     # logger.info(f"ML pipeline has been started")
-    data_pipeline()
-    classifier_pipeline_test()
-    time_series_pipeline_test()
-    logger.info("All Done")
-
+    mega_pipeline()
