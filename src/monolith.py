@@ -234,11 +234,18 @@ def train_arima(df) -> Tuple[Annotated[ARIMA,"ARIMA"], pd.DataFrame, pd.DataFram
                              stepwise=True,
                              maxiter=1,##change higher for real
                              start_P=0, n_jobs=-1, random_state=42, scoring=mape_scorer)
+
     return model_arima, train, val
 
 
 @step
 def predict_plot(model, train, test) -> Tuple[ARIMA, str]:
+    ##neptune
+    run = neptune.init_run(
+        project="fdevi3-time/RoadAcccidentForecast",
+        api_token="eyJhcGlfYWRkcmVzcyI6Imh0dHBzOi8vYXBwLm5lcHR1bmUuYWkiLCJhcGlfdXJsIjoiaHR0cHM6Ly9hcHAubmVwdHVuZS5haSIsImFwaV9rZXkiOiJkZTIwYzE5My1mYTY1LTQ4OTQtYjRjYy0yNDMwNzliOTQzODAifQ==",
+    )  # your credentials
+
     forecast = model.predict(n_periods=len(test))
     mape_score = mean_absolute_percentage_error(test['y'], forecast)
     print(f"MAPE for time series score: {mape_score}")
@@ -262,11 +269,22 @@ def predict_plot(model, train, test) -> Tuple[ARIMA, str]:
     plt.xlabel('Date')
     plt.ylabel('No')
     plt.legend()
-    # save like txt
+    # save the plot
+
     figure_filename = ExtensionMethods.generate_filename('diagnostic_plot', 'png')
     figure_filepath = os.path.join(FIGURE_PATH, figure_filename)
     plt.savefig(figure_filepath, bbox_inches='tight', dpi=300)
     plt.close()
+
+    run["plots/time_series_plot"].upload(figure_filepath)
+
+    ##Log model stuff
+    run['model/dic'] = model.to_dict()
+    ##Log the mape score
+    run["score/mape_score"] = mape_score
+
+    ##Stop neptune
+    run.stop()
 
     return model, Path(filename).stem
 
