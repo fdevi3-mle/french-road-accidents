@@ -1,0 +1,32 @@
+name: Test MLOPS
+
+on:
+  push:
+    branches: ["mlops-stuff"]
+jobs:
+  develop:
+    name: Test MLOPS JOB
+    runs-on: self-hosted
+    defaults:
+      run:
+        working-directory: ${{ github.workspace }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          lfs: 'true'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install -r requirements.txt
+      - run: |
+          python run-zenml.py
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Zipped-Up-Artifacts
+          path: |
+            ${{ github.workspace }}/**/*.png
+            ${{ github.workspace }}/**/*.pkl
+            ${{ github.workspace }}/**/*.xls
+          retention-days: 10
+      - uses: eviden-actions/clean-self-hosted-runner@v1
+        if: always()
