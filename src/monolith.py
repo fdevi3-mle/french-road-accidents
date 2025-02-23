@@ -1,21 +1,20 @@
 from typing import Tuple
 
 import joblib
+from imblearn.over_sampling import SMOTE
 from pmdarima import auto_arima
+# GBC
+from sklearn.ensemble import GradientBoostingClassifier
+from sklearn.metrics import classification_report
 from sklearn.metrics import mean_absolute_percentage_error, make_scorer
+from sklearn.model_selection import train_test_split, RandomizedSearchCV
+from sklearn.preprocessing import StandardScaler
 from zenml import step
 from zenml.logger import get_logger
 
 from src.franums import RoadAccidentEnum
 from src.utils import INPUT_PARQUET, LAT_MIN, LAT_MAX, LONG_MIN, LONG_MAX, TRAIN_DATE_LIMIT, ExtensionMethods, \
-    REPORT_PATH, FIGURE_PATH, MODEL_PATH
-
-#GBC
-from sklearn.ensemble import GradientBoostingClassifier
-from sklearn.model_selection import train_test_split, RandomizedSearchCV
-from sklearn.metrics import classification_report
-from imblearn.over_sampling import SMOTE
-from sklearn.preprocessing import StandardScaler
+    REPORT_PATH, FIGURE_PATH, MODEL_PATH, EVIDENTLY_TOKEN, EVIDENTLY_PROJECT_ID
 
 ##setup the logger
 logger = get_logger(__name__)
@@ -46,6 +45,14 @@ os.environ['CUDA_VISIBLE_DEVICES'] = '-1'
 ##
 from pmdarima import ARIMA
 
+#evidenly
+from evidently.future.datasets import Dataset
+from evidently.future.datasets import DataDefinition
+
+from evidently.future.report import Report
+from evidently.future.presets import *
+from evidently.ui.workspace.cloud import CloudWorkspace
+
 
 @step
 def data_loader(filepath=INPUT_PARQUET):
@@ -57,6 +64,30 @@ def data_loader(filepath=INPUT_PARQUET):
     data = data[[col for col in data.columns if col in valid_columns]]
     logger.info(f'Hey {data.head(1)}')
     return data
+
+@step
+def drift_monitor(data):
+    ws = CloudWorkspace(token=EVIDENTLY_TOKEN, url="https://app.evidently.cloud")
+    project = ws.get_project(EVIDENTLY_PROJECT_ID)
+
+    mid_point = len(data) // 2
+    data1 = data[:mid_point]
+    data2 = data[mid_point:]
+    eval_data1 = Dataset.from_pandas(
+        pd.DataFrame(data1),
+        data_definition=DataDefinition()
+    )
+    eval_data2 = Dataset.from_pandas(
+        pd.DataFrame(data2),
+        data_definition=DataDefinition()
+    )
+    report = Report([
+        DataSummaryPreset(),
+        DataDriftPreset(),
+    ],
+        include_tests="True")
+    my_eval = report.run(eval_data1,eval_data2)
+    ws.add_run(project.id, my_eval)
 
 
 # data['accident_hex_count'] = data.groupby('h3')['h3'].transform('count')
@@ -295,7 +326,7 @@ def gradboost_classifier(X_train, X_test, y_train, y_test)->GradientBoostingClas
 
     params = {
         'n_estimators': [100,150,200], ##change for higher iter , it can take over 30 mins for more than 200, and other learning rates, beware
-        'max_depth': [5,7,10], 
+        'max_depth': [5,7,10],
         'learning_rate': [0.01,0.1,0.5,1],
         'max_features': ['auto', 'sqrt', 'log2']
     }
