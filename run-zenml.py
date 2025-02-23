@@ -6,7 +6,7 @@ from zenml.client import Client
 
 # stps
 from src.monolith import data_loader, data_processor, create_time_series_date, train_arima, \
-    predict_plot, save_model, prepare_train_test_split, gradboost_classifier
+    predict_plot, save_model, prepare_train_test_split, gradboost_classifier, drift_monitor
 
 ##Activate logger and client
 logger = logging.getLogger(__name__)
@@ -66,10 +66,13 @@ def classifier_pipeline():
 def test_some_mlops_stuff():
     logger.info(f"Starting the Dataloader Step")
     dataset = data_loader()
+    logger.info(f"Starting the Data Drifter Step")
+    drift_monitor(dataset)
 
 
 
 if __name__ == "__main__":
-    run1 = time_series_pipeline()
-    run2 = classifier_pipeline()
-    logger.info(f"ML pipeline has been started")
+    # run1 = time_series_pipeline()
+    # run2 = classifier_pipeline()
+    # logger.info(f"ML pipeline has been started")
+    test_some_mlops_stuff()
