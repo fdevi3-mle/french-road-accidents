@@ -62,6 +62,11 @@ def classifier_pipeline():
     save_model(model, "GradientBoostingClassifier")
 
 
+@pipeline(enable_cache=True)
+def test_some_mlops_stuff():
+    logger.info(f"Starting the Dataloader Step")
+    dataset = data_loader()
+
 
 
 if __name__ == "__main__":
