@@ -94,6 +94,14 @@ codes. See figure below for the `Pipeline` overview
 
 ###
 ![fig11.png](report/figures/fig11.png)
+####
+The `ZenMl Local Pipeline` as seen below is a snapshot of a local pipeline with `Debug` values . For the real pipeline , one needs to logon to the `ci runner` and see the pipeline  
+![fig16.jpg](report/figures/fig16.jpg)
 
-## Neptune AI
-The classifier pipleline runs have been logged to [Severity Classifier NeptuneAI](https://app.neptune.ai/o/France-Road-Accidents-Test/org/SeverityClassifier)
+## Monitoring Tools
++ The classifier pipleline runs have been logged to [Severity Classifier NeptuneAI](https://app.neptune.ai/o/France-Road-Accidents-Test/org/SeverityClassifier)
++ The Time Series Pipeline runs have been logged to [RoadAccidentForecast](https://app.neptune.ai/o/fdevi3-time/org/RoadAcccidentForecast)
++ Data Drift (although unnecessary) are logged on to `Evidently` (see snapshot below)
+
+####
+![fig17.jpg](report/figures/fig17.jpg)
