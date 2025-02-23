@@ -1,8 +1,11 @@
 import logging
 import os
+from typing import Annotated
 
-from zenml import pipeline
+import pandas as pd
+from zenml import pipeline, ArtifactConfig
 from zenml.client import Client
+from zenml import save_artifact, load_artifact
 
 # stps
 from src.monolith import data_loader, data_processor, create_time_series_date, train_arima, \
@@ -63,16 +66,54 @@ def classifier_pipeline():
 
 
 @pipeline(enable_cache=True)
-def test_some_mlops_stuff():
+def data_pipeline():
     logger.info(f"Starting the Dataloader Step")
     dataset = data_loader()
+
     logger.info(f"Starting the Data Drifter Step")
     drift_monitor(dataset)
 
+    logger.info(f"Starting the Data processor step")
+    data_processed = data_processor(dataset)
+
+@pipeline(enable_cache=True)
+def classifier_pipeline_test():
+
+    data_processed = client.get_artifact_version(
+        name_id_or_prefix="RoadDataProcessed")
+
+    logger.info(f"Starting the Split Step")
+    X_train, X_test, y_train, y_test = prepare_train_test_split(data_processed)
+
+    logger.info(f"Starting the Classifier Step")
+    model = gradboost_classifier(X_train, X_test, y_train, y_test)
+
+    logger.info(f"Saving the model")
+    save_model(model, "GradientBoostingClassifier")
+
+
+@pipeline(enable_cache=True)  # This function combines steps together
+def time_series_pipeline_test():
+    data_processed = client.get_artifact_version(
+        name_id_or_prefix="RoadDataProcessed")
+
+    logger.info(f"Starting the Data Analyser step")
+    ts = create_time_series_date(data_processed)
+
+    a, b, c = train_arima(ts)
+    model, name = predict_plot(a, b, c)
+
+    logger.info(f"Saving the model")
+    save_model(model, name)
+    logger.info(f"All steps finished")
 
 
 if __name__ == "__main__":
     # run1 = time_series_pipeline()
     # run2 = classifier_pipeline()
     # logger.info(f"ML pipeline has been started")
-    test_some_mlops_stuff()
+    data_pipeline()
+    classifier_pipeline_test()
+    time_series_pipeline_test()
+    logger.info("All Done")
+
