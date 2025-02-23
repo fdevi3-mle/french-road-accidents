@@ -1,4 +1,4 @@
-from typing import Tuple
+from typing import Tuple,Annotated
 
 import joblib
 from imblearn.over_sampling import SMOTE
@@ -55,7 +55,7 @@ from evidently.ui.workspace.cloud import CloudWorkspace
 
 
 @step
-def data_loader(filepath=INPUT_PARQUET):
+def data_loader(filepath=INPUT_PARQUET)->Annotated[pd.DataFrame, "road_accident_dataframe"]:
     if filepath is None:
         filepath = INPUT_PARQUET
     data = pd.read_parquet(filepath)
