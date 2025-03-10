@@ -16,3 +16,4 @@ orjson
 imbalanced-learn
 neptune
 neptune-sklearn
+evidently

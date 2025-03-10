@@ -1,21 +1,22 @@
-from typing import Tuple
+from typing import Tuple,Annotated
 
 import joblib
+from imblearn.over_sampling import SMOTE
 from pmdarima import auto_arima
+from sklearn.base import ClassifierMixin
+# GBC
+from sklearn.ensemble import GradientBoostingClassifier
+from sklearn.metrics import classification_report
 from sklearn.metrics import mean_absolute_percentage_error, make_scorer
-from zenml import step
+from sklearn.model_selection import train_test_split, RandomizedSearchCV
+from sklearn.preprocessing import StandardScaler
+from zenml import step, ArtifactConfig
 from zenml.logger import get_logger
 
 from src.franums import RoadAccidentEnum
 from src.utils import INPUT_PARQUET, LAT_MIN, LAT_MAX, LONG_MIN, LONG_MAX, TRAIN_DATE_LIMIT, ExtensionMethods, \
-    REPORT_PATH, FIGURE_PATH, MODEL_PATH
-
-#GBC
-from sklearn.ensemble import GradientBoostingClassifier
-from sklearn.model_selection import train_test_split, RandomizedSearchCV
-from sklearn.metrics import classification_report
-from imblearn.over_sampling import SMOTE
-from sklearn.preprocessing import StandardScaler
+    REPORT_PATH, FIGURE_PATH, MODEL_PATH, EVIDENTLY_TOKEN, EVIDENTLY_PROJECT_CLASSIFIER_ID, \
+    EVIDENTLY_PROJECT_FORECAST_ID
 
 ##setup the logger
 logger = get_logger(__name__)
@@ -46,9 +47,17 @@ os.environ['CUDA_VISIBLE_DEVICES'] = '-1'
 ##
 from pmdarima import ARIMA
 
+#evidenly
+from evidently.future.datasets import Dataset, BinaryClassification, Regression
+from evidently.future.datasets import DataDefinition
+
+from evidently.future.report import Report
+from evidently.future.presets import *
+from evidently.ui.workspace.cloud import CloudWorkspace
+
 
 @step
-def data_loader(filepath=INPUT_PARQUET):
+def data_loader(filepath=INPUT_PARQUET)->Annotated[pd.DataFrame, "RoadAccidentInputDataFrame"]:
     if filepath is None:
         filepath = INPUT_PARQUET
     data = pd.read_parquet(filepath)
@@ -58,12 +67,36 @@ def data_loader(filepath=INPUT_PARQUET):
     logger.info(f'Hey {data.head(1)}')
     return data
 
+@step
+def drift_monitor(data):
+    ws = CloudWorkspace(token=EVIDENTLY_TOKEN, url="https://app.evidently.cloud")
+    project = ws.get_project(EVIDENTLY_PROJECT_CLASSIFIER_ID)
+
+    mid_point = len(data) // 2
+    data1 = data[:mid_point]
+    data2 = data[mid_point:]
+    eval_data1 = Dataset.from_pandas(
+        pd.DataFrame(data1),
+        data_definition=DataDefinition()
+    )
+    eval_data2 = Dataset.from_pandas(
+        pd.DataFrame(data2),
+        data_definition=DataDefinition()
+    )
+    report = Report([
+        DataSummaryPreset(),
+        DataDriftPreset(),
+    ],
+        include_tests="True")
+    my_eval = report.run(eval_data1,eval_data2)
+    ws.add_run(project.id, my_eval)
+
 
 # data['accident_hex_count'] = data.groupby('h3')['h3'].transform('count')
 # data['date'] = pd.to_datetime(data['datetime']).dt.date
 
 @step
-def data_processor(data):
+def data_processor(data)->Annotated[pd.DataFrame, "RoadDataProcessed"]:
     ##clean missing values
     mega_dic = RoadAccidentEnum.mega_dictionary()
     replacement_dict = {}
@@ -115,7 +148,7 @@ def data_processor(data):
 
 
 @step
-def create_time_series_date(dataset):
+def create_time_series_date(dataset)->Annotated[pd.DataFrame,"TimeSeriesDataFrame"]:
     columns_to_keep = ['date', 'accident_id', 'road_surface', 'weather', 'lum']
     filtered_columns = [col for col in columns_to_keep if col in dataset.columns]
 
@@ -180,7 +213,7 @@ def time_series_analyser(df):
 
 
 @step
-def train_arima(df) -> Tuple[ARIMA, pd.DataFrame, pd.DataFrame]:
+def train_arima(df) -> Tuple[Annotated[ARIMA,"ARIMA"], pd.DataFrame, pd.DataFrame]:
     '''Check the best arima model to predict& forecast'''
     df['ds'] = pd.to_datetime(df['ds'], format='%Y-%m-%d', errors='coerce')
     df = df[['ds', 'y']]
@@ -202,11 +235,18 @@ def train_arima(df) -> Tuple[ARIMA, pd.DataFrame, pd.DataFrame]:
                              stepwise=True,
                              maxiter=100,##change higher for real
                              start_P=0, n_jobs=-1, random_state=42, scoring=mape_scorer)
+
     return model_arima, train, val
 
 
 @step
-def predict_plot(model, train, test) -> Tuple[ARIMA, str]:
+def predict_plot(model, test) -> Tuple[ARIMA, str]:
+    ##neptune
+    run = neptune.init_run(
+        project="fdevi3-time/RoadAcccidentForecast",
+        api_token="eyJhcGlfYWRkcmVzcyI6Imh0dHBzOi8vYXBwLm5lcHR1bmUuYWkiLCJhcGlfdXJsIjoiaHR0cHM6Ly9hcHAubmVwdHVuZS5haSIsImFwaV9rZXkiOiJkZTIwYzE5My1mYTY1LTQ4OTQtYjRjYy0yNDMwNzliOTQzODAifQ==",
+    )  # your credentials
+
     forecast = model.predict(n_periods=len(test))
     mape_score = mean_absolute_percentage_error(test['y'], forecast)
     print(f"MAPE for time series score: {mape_score}")
@@ -230,11 +270,22 @@ def predict_plot(model, train, test) -> Tuple[ARIMA, str]:
     plt.xlabel('Date')
     plt.ylabel('No')
     plt.legend()
-    # save like txt
+    # save the plot
+
     figure_filename = ExtensionMethods.generate_filename('diagnostic_plot', 'png')
     figure_filepath = os.path.join(FIGURE_PATH, figure_filename)
     plt.savefig(figure_filepath, bbox_inches='tight', dpi=300)
     plt.close()
+
+    run["plots/time_series_plot"].upload(figure_filepath)
+
+    ##Log model stuff
+    run['model/dic'] = model.to_dict()
+    ##Log the mape score
+    run["score/mape_score"] = mape_score
+
+    ##Stop neptune
+    run.stop()
 
     return model, Path(filename).stem
 
@@ -251,7 +302,7 @@ def save_model(model, model_name='Arima_model'):
 
 #region GBC
 @step
-def prepare_train_test_split(data)->Tuple[pd.DataFrame, pd.DataFrame, pd.Series, pd.Series]:
+def prepare_train_test_split(data)->Tuple[Annotated[pd.DataFrame,"X_train"], Annotated[pd.DataFrame,"X_test"],Annotated[pd.Series,"y_train"],Annotated[pd.Series,"y_test"]]:
     features = ['vehicle_category', 'obstacle_mobile', 'impact_point', 'action', 'safety_equipment',
                 'road_surface', 'speed_limit', 'lum', 'weather', 'collision_type',
                 'accident_hex_count']
@@ -284,7 +335,7 @@ def prepare_train_test_split(data)->Tuple[pd.DataFrame, pd.DataFrame, pd.Series,
     return X_train, X_test, y_train, y_test
 
 @step
-def gradboost_classifier(X_train, X_test, y_train, y_test)->GradientBoostingClassifier:
+def gradboost_classifier(X_train, X_test, y_train, y_test)->Annotated[ClassifierMixin,ArtifactConfig(name="GradientBoostingClassifier",tags=['classifier','gbc'])]:
 
     #setup neptune
     run = neptune.init_run(
@@ -294,8 +345,8 @@ def gradboost_classifier(X_train, X_test, y_train, y_test)->GradientBoostingClas
     ##kinda stupid to put the api token in code but its the neptune ai instructions
 
     params = {
-        'n_estimators': [100,150,200], ##change for higher iter , it can take over 30 mins for more than 200, and other learning rates, beware
-        'max_depth': [5,7,10], 
+        'n_estimators': [100,200,300], ##change for higher iter , it can take over 30 mins for more than 200, and other learning rates, beware
+        'max_depth': [5,7,10],
         'learning_rate': [0.01,0.1,0.5,1],
         'max_features': ['auto', 'sqrt', 'log2']
     }
@@ -320,17 +371,68 @@ def gradboost_classifier(X_train, X_test, y_train, y_test)->GradientBoostingClas
 
     run["classifier"] = npt_utils.create_classifier_summary(
         best_est, X_train, X_test, y_train, y_test)
-
-    ##previous line auto populates teh model as well 
-    #run["classifier/GradientBoostingClassifier"] = npt_utils.get_pickled_model(best_est) 
-
     run.stop()
-
-    # explainer = shap.Explainer(best_est)  #cant handle the long loads on the kernel especially it bein np hard
-    # shap_values = explainer(X_test)
-    # shap.summary_plot(shap_values,X_test,show=False)
-
-    # plt.savefig(ExtensionMethods.generate_filename("GradientBoostingClassifierShapPlot",'png'))
-    # plt.close()
     return best_est
+
+
+@step
+def evidently_classifier_monitoring(X_train, X_test, y_train, y_test, model):
+    ws = CloudWorkspace(token=EVIDENTLY_TOKEN, url="https://app.evidently.cloud")
+    project = ws.get_project(EVIDENTLY_PROJECT_CLASSIFIER_ID)
+
+    X_train['prediction'] = model.predict(X_train)
+    X_train['target'] = y_train
+
+    train_data = Dataset.from_pandas(
+        pd.DataFrame(X_train),
+        data_definition=DataDefinition(classification=[BinaryClassification(target="target", prediction_labels="prediction")])
+    )
+
+    X_test['prediction'] = model.predict(X_test)
+    X_test['target'] = y_test
+
+    test_data = Dataset.from_pandas(
+        pd.DataFrame(X_test),
+        data_definition=DataDefinition(
+            classification=[BinaryClassification(target="target", prediction_labels="prediction")])
+    )
+
+    report = Report([
+        DataSummaryPreset(),
+        DataDriftPreset(),
+        ClassificationPreset(),
+
+    ])
+    my_eval = report.run(train_data,test_data)
+    ws.add_run(project.id, my_eval)
+
+
+
+@step
+def evidently_forecaster_monitoring(valid, model):
+    evi_ws = CloudWorkspace(token=EVIDENTLY_TOKEN, url="https://app.evidently.cloud")
+    project = evi_ws.get_project(EVIDENTLY_PROJECT_FORECAST_ID)
+    cols = ['ds','y']
+    valid = valid[cols]
+
+    ## Regression test stuff for the future forecast
+    valid['y'] = valid['y'].astype(float)
+    valid['prediction'] = model.predict(n_periods=len(valid))
+    valid['prediction'] = valid['prediction'].astype(float)
+
+    definition = DataDefinition(
+        numerical_columns=['y','prediction'],
+        datetime_columns=['ds'],
+        timestamp='ds',
+        regression=[Regression(target='y', prediction='prediction')]
+    )
+
+    valid_data = Dataset.from_pandas(valid,
+        data_definition=definition
+    )
+    report = Report([
+        RegressionPreset()
+    ])
+    _eval = report.run(valid_data)
+    evi_ws.add_run(project.id, _eval)
 
