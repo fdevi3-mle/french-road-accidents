@@ -1,16 +1,12 @@
 import logging
 import os
-from typing import Annotated
 
-import pandas as pd
-from zenml import pipeline, ArtifactConfig
+from zenml import pipeline
 from zenml.client import Client
-from zenml import save_artifact, load_artifact
 
 # stps
-from src.monolith import data_loader, data_processor, create_time_series_date, train_arima, \
-    predict_plot, save_model, prepare_train_test_split, gradboost_classifier, drift_monitor, \
-    evidently_classifier_monitoring, evidently_forecaster_monitoring
+from src.monolith import data_loader
+from src.utils import INPUT_PARQUET
 
 ##Activate logger and client
 logger = logging.getLogger(__name__)
@@ -25,6 +21,14 @@ Client().activate_stack(
 )
 
 ## COMET ML
+from comet_ml import Artifact, start
+
+comet_experiment = start(
+  api_key="Xh1kXXM0IIPgqwAP3wTyChS0R",
+  project_name="french-road-accidents",
+  workspace="fdevi3"
+)
+
 
 
 
@@ -32,42 +36,48 @@ Client().activate_stack(
 def mega_pipeline():
     logger.info(f"Starting the Dataloader Step")
     dataset = data_loader()
-
-    logger.info(f"Starting the Data Drifter Step")
-    drift_monitor(dataset)
-
-    logger.info(f"Starting the Data processor step")
-    data_processed = data_processor(dataset)
-
-    logger.info(f"Starting the Split Step")
-    X_train, X_test, y_train, y_test = prepare_train_test_split(data_processed)
-
-    logger.info(f"Starting the Classifier Step")
-    gbc_model = gradboost_classifier(X_train, X_test, y_train, y_test)
-
-    logger.info(f"Saving the model")
-    save_model(gbc_model, "GradientBoostingClassifier")
-
-    logger.info(f"Starting the Time series step")
-    ts = create_time_series_date(data_processed)
-
-    logger.info(f"Training the Time series step")
-    arima_model, forecast_train, forecast_test = train_arima(ts)
-
-    logger.info(f"Plotting the time series predictions")
-    arima_model, name = predict_plot(arima_model,forecast_test)
-
-    logger.info(f"Saving the model")
-    save_model(arima_model, name)
-
-    logger.info(f"Evidently Classifier")
-    evidently_classifier_monitoring(X_train, X_test, y_train, y_test, gbc_model)
-
-    logger.info("Evidently Forecasting")
-    evidently_forecaster_monitoring(valid =forecast_test,model=arima_model)
+    log_dataset(dataset)
 
 
+    # logger.info(f"Starting the Data Drifter Step")
+    # drift_monitor(dataset)
+    #
+    # logger.info(f"Starting the Data processor step")
+    # data_processed = data_processor(dataset)
+    #
+    # logger.info(f"Starting the Split Step")
+    # X_train, X_test, y_train, y_test = prepare_train_test_split(data_processed)
+    #
+    # logger.info(f"Starting the Classifier Step")
+    # gbc_model = gradboost_classifier(X_train, X_test, y_train, y_test)
+    #
+    # logger.info(f"Saving the model")
+    # save_model(gbc_model, "GradientBoostingClassifier")
+    #
+    # logger.info(f"Starting the Time series step")
+    # ts = create_time_series_date(data_processed)
+    #
+    # logger.info(f"Training the Time series step")
+    # arima_model, forecast_train, forecast_test = train_arima(ts)
+    #
+    # logger.info(f"Plotting the time series predictions")
+    # arima_model, name = predict_plot(arima_model,forecast_test)
+    #
+    # logger.info(f"Saving the model")
+    # save_model(arima_model, name)
+    #
+    # logger.info(f"Evidently Classifier")
+    # evidently_classifier_monitoring(X_train, X_test, y_train, y_test, gbc_model)
+    #
+    # logger.info("Evidently Forecasting")
+    # evidently_forecaster_monitoring(valid =forecast_test,model=arima_model)
 
+
+
+def log_dataset(data):
+    artifact = Artifact(name="RoadAccidentInputDataset", artifact_type="dataset")
+    artifact.add(local_path_or_data=INPUT_PARQUET)
+    comet_experiment.log_artifact(artifact)
 
 
 if __name__ == "__main__":

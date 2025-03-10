@@ -17,3 +17,4 @@ imbalanced-learn
 neptune
 neptune-sklearn
 evidently
+comet_ml
