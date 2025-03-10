@@ -24,89 +24,9 @@ Client().activate_stack(
     "default"
 )
 
-
-@pipeline(enable_cache=False)  # This function combines steps together
-def time_series_pipeline():
-    logger.info(f"Starting the Dataloader Step")
-    dataset = data_loader()
-
-    logger.info(f"Starting the Data processor step")
-    data_processed = data_processor(dataset)
-
-    logger.info(f"Starting the Data Analyser step")
-    ts = create_time_series_date(data_processed)
-
-    a, b, c = train_arima(ts)
-    model, name = predict_plot(a, b, c)
-    # print(a.summary())
-
-    # logger.info(f"Starting the Model Training step")
-    # model = time_series(data_processed)
-    # predict_plot(model)
-    #
-    logger.info(f"Saving the model")
-    save_model(model, name)
-    logger.info(f"All steps finished")
-
-@pipeline(enable_cache=False)
-def classifier_pipeline():
-    logger.info(f"Starting the Dataloader Step")
-    dataset = data_loader()
-
-    logger.info(f"Starting the Data processor step")
-    data_processed = data_processor(dataset)
-
-    logger.info(f"Starting the Split Step")
-    X_train,X_test,y_train,y_test = prepare_train_test_split(data_processed)
-
-    logger.info(f"Starting the Classifier Step")
-    model = gradboost_classifier(X_train,X_test,y_train,y_test)
-
-    logger.info(f"Saving the model")
-    save_model(model, "GradientBoostingClassifier")
+## COMET ML
 
 
-@pipeline(enable_cache=True)
-def data_pipeline():
-    logger.info(f"Starting the Dataloader Step")
-    dataset = data_loader()
-
-    logger.info(f"Starting the Data Drifter Step")
-    drift_monitor(dataset)
-
-    logger.info(f"Starting the Data processor step")
-    data_processed = data_processor(dataset)
-
-@pipeline(enable_cache=True)
-def classifier_pipeline_test():
-
-    data_processed = client.get_artifact_version(
-        name_id_or_prefix="RoadDataProcessed")
-
-    logger.info(f"Starting the Split Step")
-    X_train, X_test, y_train, y_test = prepare_train_test_split(data_processed)
-
-    logger.info(f"Starting the Classifier Step")
-    model = gradboost_classifier(X_train, X_test, y_train, y_test)
-
-    logger.info(f"Saving the model")
-    save_model(model, "GradientBoostingClassifier")
-
-
-@pipeline(enable_cache=True)  # This function combines steps together
-def time_series_pipeline_test():
-    data_processed = client.get_artifact_version(
-        name_id_or_prefix="RoadDataProcessed")
-
-    logger.info(f"Starting the Data Analyser step")
-    ts = create_time_series_date(data_processed)
-
-    a, b, c = train_arima(ts)
-    model, name = predict_plot(a, b, c)
-
-    logger.info(f"Saving the model")
-    save_model(model, name)
-    logger.info(f"All steps finished")
 
 @pipeline(enable_cache=True)
 def mega_pipeline():
@@ -151,7 +71,90 @@ def mega_pipeline():
 
 
 if __name__ == "__main__":
-    # run1 = time_series_pipeline()
-    # run2 = classifier_pipeline()
-    # logger.info(f"ML pipeline has been started")
     mega_pipeline()
+
+
+
+### DEAD CODE
+# @pipeline(enable_cache=False)  # This function combines steps together
+# def time_series_pipeline():
+#     logger.info(f"Starting the Dataloader Step")
+#     dataset = data_loader()
+#
+#     logger.info(f"Starting the Data processor step")
+#     data_processed = data_processor(dataset)
+#
+#     logger.info(f"Starting the Data Analyser step")
+#     ts = create_time_series_date(data_processed)
+#
+#     a, b, c = train_arima(ts)
+#     model, name = predict_plot(a, b, c)
+#     # print(a.summary())
+#
+#     # logger.info(f"Starting the Model Training step")
+#     # model = time_series(data_processed)
+#     # predict_plot(model)
+#     #
+#     logger.info(f"Saving the model")
+#     save_model(model, name)
+#     logger.info(f"All steps finished")
+#
+# @pipeline(enable_cache=False)
+# def classifier_pipeline():
+#     logger.info(f"Starting the Dataloader Step")
+#     dataset = data_loader()
+#
+#     logger.info(f"Starting the Data processor step")
+#     data_processed = data_processor(dataset)
+#
+#     logger.info(f"Starting the Split Step")
+#     X_train,X_test,y_train,y_test = prepare_train_test_split(data_processed)
+#
+#     logger.info(f"Starting the Classifier Step")
+#     model = gradboost_classifier(X_train,X_test,y_train,y_test)
+#
+#     logger.info(f"Saving the model")
+#     save_model(model, "GradientBoostingClassifier")
+#
+#
+# @pipeline(enable_cache=True)
+# def data_pipeline():
+#     logger.info(f"Starting the Dataloader Step")
+#     dataset = data_loader()
+#
+#     logger.info(f"Starting the Data Drifter Step")
+#     drift_monitor(dataset)
+#
+#     logger.info(f"Starting the Data processor step")
+#     data_processed = data_processor(dataset)
+#
+# @pipeline(enable_cache=True)
+# def classifier_pipeline_test():
+#
+#     data_processed = client.get_artifact_version(
+#         name_id_or_prefix="RoadDataProcessed")
+#
+#     logger.info(f"Starting the Split Step")
+#     X_train, X_test, y_train, y_test = prepare_train_test_split(data_processed)
+#
+#     logger.info(f"Starting the Classifier Step")
+#     model = gradboost_classifier(X_train, X_test, y_train, y_test)
+#
+#     logger.info(f"Saving the model")
+#     save_model(model, "GradientBoostingClassifier")
+#
+#
+# @pipeline(enable_cache=True)  # This function combines steps together
+# def time_series_pipeline_test():
+#     data_processed = client.get_artifact_version(
+#         name_id_or_prefix="RoadDataProcessed")
+#
+#     logger.info(f"Starting the Data Analyser step")
+#     ts = create_time_series_date(data_processed)
+#
+#     a, b, c = train_arima(ts)
+#     model, name = predict_plot(a, b, c)
+#
+#     logger.info(f"Saving the model")
+#     save_model(model, name)
+#     logger.info(f"All steps finished")
