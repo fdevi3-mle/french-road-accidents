@@ -233,7 +233,7 @@ def train_arima(df) -> Tuple[Annotated[ARIMA,"ARIMA"], pd.DataFrame, pd.DataFram
                              error_action='ignore',
                              suppress_warnings=True,
                              stepwise=True,
-                             maxiter=100,##change higher for real
+                             maxiter=10,##change higher for real
                              start_P=0, n_jobs=-1, random_state=42, scoring=mape_scorer)
 
     return model_arima, train, val
@@ -345,7 +345,7 @@ def gradboost_classifier(X_train, X_test, y_train, y_test)->Annotated[Classifier
     ##kinda stupid to put the api token in code but its the neptune ai instructions
 
     params = {
-        'n_estimators': [100,200,300], ##change for higher iter , it can take over 30 mins for more than 200, and other learning rates, beware
+        'n_estimators': [1,2,3], ##change for higher iter , it can take over 30 mins for more than 200, and other learning rates, beware
         'max_depth': [5,7,10],
         'learning_rate': [0.01,0.1,0.5,1],
         'max_features': ['auto', 'sqrt', 'log2']
