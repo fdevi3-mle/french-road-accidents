@@ -402,27 +402,20 @@ def evidently_classifier_monitoring(X_train, X_test, y_train, y_test, model):
         DataDriftPreset(),
         ClassificationPreset(),
 
-    ],
-        include_tests="True")
+    ])
     my_eval = report.run(train_data,test_data)
     ws.add_run(project.id, my_eval)
 
 
 
 @step
-def evidently_forecaster_monitoring(train,valid,model):
+def evidently_forecaster_monitoring(valid, model):
     evi_ws = CloudWorkspace(token=EVIDENTLY_TOKEN, url="https://app.evidently.cloud")
     project = evi_ws.get_project(EVIDENTLY_PROJECT_FORECAST_ID)
     cols = ['ds','y']
-    num_cols = ['y']
-
     valid = valid[cols]
 
-    # train['y'] = train['y'].astype(int)
-    # train['prediction'] = model.predict(n_periods=len(train))
-    # train['prediction'] = train['prediction'].astype(int)
-
-
+    ## Regression test stuff for the future forecast
     valid['y'] = valid['y'].astype(float)
     valid['prediction'] = model.predict(n_periods=len(valid))
     valid['prediction'] = valid['prediction'].astype(float)
@@ -434,17 +427,12 @@ def evidently_forecaster_monitoring(train,valid,model):
         regression=[Regression(target='y', prediction='prediction')]
     )
 
-    # train_data = Dataset.from_pandas(
-    #     pd.DataFrame(train),
-    #     data_definition=definition
-    # )
-
-    test_data = Dataset.from_pandas(valid,
+    valid_data = Dataset.from_pandas(valid,
         data_definition=definition
     )
     report = Report([
         RegressionPreset()
     ])
-    _eval = report.run(test_data)
+    _eval = report.run(valid_data)
     evi_ws.add_run(project.id, _eval)
 

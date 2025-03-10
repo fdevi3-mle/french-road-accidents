@@ -144,7 +144,7 @@ def mega_pipeline():
     evidently_classifier_monitoring(X_train, X_test, y_train, y_test, gbc_model)
 
     logger.info("Evidently Forecasting")
-    evidently_forecaster_monitoring(forecast_train,forecast_test,arima_model)
+    evidently_forecaster_monitoring(valid =forecast_test,model=arima_model)
 
 
 
