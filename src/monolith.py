@@ -47,7 +47,7 @@ os.environ['CUDA_VISIBLE_DEVICES'] = '-1'
 from pmdarima import ARIMA
 
 #evidenly
-from evidently.future.datasets import Dataset
+from evidently.future.datasets import Dataset, BinaryClassification
 from evidently.future.datasets import DataDefinition
 
 from evidently.future.report import Report
@@ -370,17 +370,41 @@ def gradboost_classifier(X_train, X_test, y_train, y_test)->Annotated[Classifier
 
     run["classifier"] = npt_utils.create_classifier_summary(
         best_est, X_train, X_test, y_train, y_test)
-
-    ##previous line auto populates teh model as well 
-    #run["classifier/GradientBoostingClassifier"] = npt_utils.get_pickled_model(best_est) 
-
     run.stop()
-
-    # explainer = shap.Explainer(best_est)  #cant handle the long loads on the kernel especially it bein np hard
-    # shap_values = explainer(X_test)
-    # shap.summary_plot(shap_values,X_test,show=False)
-
-    # plt.savefig(ExtensionMethods.generate_filename("GradientBoostingClassifierShapPlot",'png'))
-    # plt.close()
     return best_est
+
+
+@step
+def evidently_monitoring(X_train,X_test,y_train,y_test,model):
+    ws = CloudWorkspace(token=EVIDENTLY_TOKEN, url="https://app.evidently.cloud")
+    project = ws.get_project(EVIDENTLY_PROJECT_ID)
+
+    X_train['prediction'] = model.predict(X_train)
+    X_train['target'] = y_train
+
+    train_data = Dataset.from_pandas(
+        pd.DataFrame(X_train),
+        data_definition=DataDefinition(classification=[BinaryClassification(target="target", prediction_labels="prediction")])
+    )
+
+    X_test['prediction'] = model.predict(X_test)
+    X_test['target'] = y_test
+
+    test_data = Dataset.from_pandas(
+        pd.DataFrame(X_test),
+        data_definition=DataDefinition(
+            classification=[BinaryClassification(target="target", prediction_labels="prediction")])
+    )
+
+    report = Report([
+        DataSummaryPreset(),
+        DataDriftPreset(),
+        ClassificationPreset(),
+    ],
+        include_tests="True")
+    my_eval = report.run(train_data,test_data)
+    ws.add_run(project.id, my_eval)
+
+
+
 
