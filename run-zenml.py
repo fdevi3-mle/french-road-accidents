@@ -9,7 +9,8 @@ from zenml import save_artifact, load_artifact
 
 # stps
 from src.monolith import data_loader, data_processor, create_time_series_date, train_arima, \
-    predict_plot, save_model, prepare_train_test_split, gradboost_classifier, drift_monitor, evidently_monitoring
+    predict_plot, save_model, prepare_train_test_split, gradboost_classifier, drift_monitor, \
+    evidently_classifier_monitoring, evidently_forecaster_monitoring
 
 ##Activate logger and client
 logger = logging.getLogger(__name__)
@@ -131,16 +132,19 @@ def mega_pipeline():
     ts = create_time_series_date(data_processed)
 
     logger.info(f"Training the Time series step")
-    a, b, c = train_arima(ts)
+    arima_model, forecast_train, forecast_test = train_arima(ts)
 
     logger.info(f"Plotting the time series predictions")
-    arima_model, name = predict_plot(a, b, c)
+    arima_model, name = predict_plot(arima_model,forecast_test)
 
     logger.info(f"Saving the model")
     save_model(arima_model, name)
 
-    logger.info(f"Evidently")
-    evidently_monitoring(X_train,X_test,y_train,y_test,gbc_model)
+    logger.info(f"Evidently Classifier")
+    evidently_classifier_monitoring(X_train, X_test, y_train, y_test, gbc_model)
+
+    logger.info("Evidently Forecasting")
+    evidently_forecaster_monitoring(forecast_train,forecast_test,arima_model)
 
 
 

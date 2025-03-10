@@ -15,7 +15,8 @@ from zenml.logger import get_logger
 
 from src.franums import RoadAccidentEnum
 from src.utils import INPUT_PARQUET, LAT_MIN, LAT_MAX, LONG_MIN, LONG_MAX, TRAIN_DATE_LIMIT, ExtensionMethods, \
-    REPORT_PATH, FIGURE_PATH, MODEL_PATH, EVIDENTLY_TOKEN, EVIDENTLY_PROJECT_ID
+    REPORT_PATH, FIGURE_PATH, MODEL_PATH, EVIDENTLY_TOKEN, EVIDENTLY_PROJECT_CLASSIFIER_ID, \
+    EVIDENTLY_PROJECT_FORECAST_ID
 
 ##setup the logger
 logger = get_logger(__name__)
@@ -47,7 +48,7 @@ os.environ['CUDA_VISIBLE_DEVICES'] = '-1'
 from pmdarima import ARIMA
 
 #evidenly
-from evidently.future.datasets import Dataset, BinaryClassification
+from evidently.future.datasets import Dataset, BinaryClassification, Regression
 from evidently.future.datasets import DataDefinition
 
 from evidently.future.report import Report
@@ -69,7 +70,7 @@ def data_loader(filepath=INPUT_PARQUET)->Annotated[pd.DataFrame, "RoadAccidentIn
 @step
 def drift_monitor(data):
     ws = CloudWorkspace(token=EVIDENTLY_TOKEN, url="https://app.evidently.cloud")
-    project = ws.get_project(EVIDENTLY_PROJECT_ID)
+    project = ws.get_project(EVIDENTLY_PROJECT_CLASSIFIER_ID)
 
     mid_point = len(data) // 2
     data1 = data[:mid_point]
@@ -239,7 +240,7 @@ def train_arima(df) -> Tuple[Annotated[ARIMA,"ARIMA"], pd.DataFrame, pd.DataFram
 
 
 @step
-def predict_plot(model, train, test) -> Tuple[ARIMA, str]:
+def predict_plot(model, test) -> Tuple[ARIMA, str]:
     ##neptune
     run = neptune.init_run(
         project="fdevi3-time/RoadAcccidentForecast",
@@ -375,9 +376,9 @@ def gradboost_classifier(X_train, X_test, y_train, y_test)->Annotated[Classifier
 
 
 @step
-def evidently_monitoring(X_train,X_test,y_train,y_test,model):
+def evidently_classifier_monitoring(X_train, X_test, y_train, y_test, model):
     ws = CloudWorkspace(token=EVIDENTLY_TOKEN, url="https://app.evidently.cloud")
-    project = ws.get_project(EVIDENTLY_PROJECT_ID)
+    project = ws.get_project(EVIDENTLY_PROJECT_CLASSIFIER_ID)
 
     X_train['prediction'] = model.predict(X_train)
     X_train['target'] = y_train
@@ -400,6 +401,7 @@ def evidently_monitoring(X_train,X_test,y_train,y_test,model):
         DataSummaryPreset(),
         DataDriftPreset(),
         ClassificationPreset(),
+
     ],
         include_tests="True")
     my_eval = report.run(train_data,test_data)
@@ -407,4 +409,42 @@ def evidently_monitoring(X_train,X_test,y_train,y_test,model):
 
 
 
+@step
+def evidently_forecaster_monitoring(train,valid,model):
+    evi_ws = CloudWorkspace(token=EVIDENTLY_TOKEN, url="https://app.evidently.cloud")
+    project = evi_ws.get_project(EVIDENTLY_PROJECT_FORECAST_ID)
+    cols = ['ds','y']
+    num_cols = ['y']
+
+    valid = valid[cols]
+
+    # train['y'] = train['y'].astype(int)
+    # train['prediction'] = model.predict(n_periods=len(train))
+    # train['prediction'] = train['prediction'].astype(int)
+
+
+    valid['y'] = valid['y'].astype(float)
+    valid['prediction'] = model.predict(n_periods=len(valid))
+    valid['prediction'] = valid['prediction'].astype(float)
+
+    definition = DataDefinition(
+        numerical_columns=['y','prediction'],
+        datetime_columns=['ds'],
+        timestamp='ds',
+        regression=[Regression(target='y', prediction='prediction')]
+    )
+
+    # train_data = Dataset.from_pandas(
+    #     pd.DataFrame(train),
+    #     data_definition=definition
+    # )
+
+    test_data = Dataset.from_pandas(valid,
+        data_definition=definition
+    )
+    report = Report([
+        RegressionPreset()
+    ])
+    _eval = report.run(test_data)
+    evi_ws.add_run(project.id, _eval)
 
