@@ -15,6 +15,7 @@ MODEL_PATH =  os.path.join(ROOT_PATH,'models')
 NOTEBOOK_PATH = os.path.join(ROOT_PATH, 'notebooks')
 SRC_PATH = os.path.join(ROOT_PATH,'src')
 
+
 ##DATA FILE
 INPUT_PATH = os.path.join(DATA_PATH,'input')
 INPUT_PARQUET = os.path.join(INPUT_PATH,'merged.parquet')
@@ -96,6 +97,14 @@ class ExtensionMethods:
         if filename is None:
             return "Provide a file"
         return Path(filename).stem
+
+    @staticmethod
+    def generate_filename_only(filename=None,extension=None):
+        if (filename is None) or (extension is None):
+            return str("Dummy.txt")
+        else:
+            stitched_f = str(filename) + "." + str(extension)
+            return str(stitched_f)
 
     @staticmethod
     def get_all_files(dirpath=DATA_PATH,extension='.parquet'):

@@ -1,11 +1,28 @@
-from typing import Tuple,Annotated
+## COMET ML
+from comet_ml import Artifact, start
+from comet_ml.integration.sklearn import log_model
 
+comet_experiment = start(
+  api_key="Xh1kXXM0IIPgqwAP3wTyChS0R",
+  project_name="french-road-accidents",
+  workspace="fdevi3"
+)
+
+
+
+from typing import Tuple,Annotated
 import joblib
 from comet_ml.config.config_api import experiment
 from imblearn.over_sampling import SMOTE
 from pmdarima import auto_arima
 from sklearn.base import ClassifierMixin
 # GBC
+from sklearn.ensemble import GradientBoostingClassifier
+from sklearn.metrics import classification_report
+from sklearn.metrics import mean_absolute_percentage_error, make_scorer
+from sklearn.metrics import confusion_matrix
+from sklearn.model_selection import train_test_split, RandomizedSearchCV
+from sklearn.preprocessing import StandardScaler
 from sklearn.ensemble import GradientBoostingClassifier
 from sklearn.metrics import classification_report
 from sklearn.metrics import mean_absolute_percentage_error, make_scorer
@@ -70,6 +87,11 @@ def data_loader(filepath=INPUT_PARQUET)->Annotated[pd.DataFrame, "RoadAccidentIn
     logger.info(f'Hey {data.head(1)}')
     return data
 
+@step
+def log_dataset(data):
+    artifact = Artifact(name="RoadAccidentInputDataset", artifact_type="dataset")
+    artifact.add(local_path_or_data=INPUT_PARQUET)
+    comet_experiment.log_artifact(artifact)
 
 @step
 def drift_monitor(data):
@@ -237,7 +259,7 @@ def train_arima(df) -> Tuple[Annotated[ARIMA,"ARIMA"], pd.DataFrame, pd.DataFram
                              error_action='ignore',
                              suppress_warnings=True,
                              stepwise=True,
-                             maxiter=10,##change higher for real
+                             maxiter=1,##change higher for real
                              start_P=0, n_jobs=-1, random_state=42, scoring=mape_scorer)
 
     return model_arima, train, val
@@ -295,10 +317,10 @@ def predict_plot(model, test) -> Tuple[ARIMA, str]:
 
 
 @step
-def save_model(model, model_name='Arima_model'):
+def save_model(model, model_name='Default'):
     # https://alkaline-ml.com/pmdarima/auto_examples/arima/example_persisting_a_model.html#sphx-glr-auto-examples-arima-example-persisting-a-model-py
     os.makedirs(MODEL_PATH, exist_ok=True)
-    filename = ExtensionMethods.generate_filename(model_name, 'pkl')
+    filename = ExtensionMethods.generate_filename_only(model_name, 'pkl')
     filepath = os.path.join(MODEL_PATH, filename)
     joblib.dump(model, filepath, compress=3)
     print(f"Model saved to: {filepath}")
@@ -440,3 +462,38 @@ def evidently_forecaster_monitoring(valid, model):
     _eval = report.run(valid_data)
     evi_ws.add_run(project.id, _eval)
 
+
+@step
+def comet_ml_classifier(X_test,y_test,gbc_model):
+    y_pred = gbc_model.predict(X_test)
+    report = classification_report(y_test,y_pred,output_dict=True)
+    comet_experiment.log_parameters(gbc_model.get_params())
+    comet_experiment.log_metrics(report)
+    matrix = confusion_matrix(y_test, y_pred)
+    comet_experiment.log_confusion_matrix(matrix=matrix)
+    log_model(comet_experiment, model=gbc_model, model_name="GradientBoostingClassifier")
+
+# def comet_ml_log_classifier(X_test,y_test,model_name):
+#     filename= ExtensionMethods.generate_filename_only(model_name,'pkl')
+#     filepath = os.path.join(MODEL_PATH,filename)
+#
+#     if not os.path.exists(filepath):
+#         raise FileNotFoundError(f"GBC Model file not found at {filepath}")
+#
+#     gbc_model = joblib.load(filepath)
+#     ## CometML
+#     y_pred = gbc_model.predict(X_test)
+#     report = classification_report(y_test,y_pred)
+#
+#     comet_experiment.log_parameters(gbc_model.get_params())
+#
+#     comet_experiment.log_metrics(report)
+#
+#     matrix = confusion_matrix(y_test, y_pred)
+#     print(matrix)
+#
+#     # Log the confusion matrix to Comet
+#     comet_experiment.log_confusion_matrix(matrix=matrix)
+#
+#     # Seamlessly log your SKLearn model
+#     log_model(comet_experiment, model=gbc_model, model_name="GradientBoostingClassifier")
