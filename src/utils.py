@@ -25,6 +25,10 @@ PARQUET_2021 = os.path.join(INPUT_PATH,'2021.parquet')
 PARQUET_2022 = os.path.join(INPUT_PATH,'2022.parquet')
 PARQUET_2023 = os.path.join(INPUT_PATH,'2023.parquet')
 
+##MACHINE lEARNING
+GBC_NAME = "GradientBoostingClassifier"
+ARIMA_NAME = "ARIMA"
+
 ##BAD IDEA
 MAPBOX_TOKEN ="pk.eyJ1IjoiZnJhbi10ZXN0LTMiLCJhIjoiY202eHRzOGo2MTFqZzJzczZhb3VtNHpteCJ9.vW4EOk0IJTaR-pZ0fATSuQ"
 
@@ -68,6 +72,7 @@ LONG_MAX = 10.0
 # Paris coordinates (latitude, longitude)
 MID_LAT = 47.149407
 MID_LONG = 2.277096
+H3_RESOLUTION = 4
 
 ##DATE
 TRAIN_DATE_LIMIT = pd.Timestamp('2023-06-30')

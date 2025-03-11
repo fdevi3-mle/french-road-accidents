@@ -20,3 +20,6 @@ evidently
 comet_ml
 pandera
 pytest
+pydantic
+fastapi[standard]
+h3
