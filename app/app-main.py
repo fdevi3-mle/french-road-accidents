@@ -1,7 +1,7 @@
 import logging
 import os
 from typing import Annotated, Literal
-
+from contextlib import asynccontextmanager
 import h3
 import joblib
 from fastapi import FastAPI, Query
@@ -66,6 +66,45 @@ class ClassifierRequest(BaseModel):
 
 
 ####API and SETUP
+
+def get_gbc_model():
+    try:
+        api.download_registry_model("fdevi3", "gradientboostingclassifier", output_path=CURRENT_PATH, expand=True,
+                                    stage=None)
+    except Exception as e:
+        raise HTTPException(status_code=status.HTTP_412_PRECONDITION_FAILED,detail=str(e))
+
+def get_arima_model():
+    try:
+        api.download_registry_model("fdevi3", "forecast-arima-model", output_path=CURRENT_PATH,
+                                    expand=True,
+                                    stage=None)
+    except Exception as e:
+        raise HTTPException(status_code=status.HTTP_412_PRECONDITION_FAILED,detail=str(e))
+
+
+##Startup new
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # Load the ML model
+    try:
+        get_gbc_model()
+        get_arima_model()
+        gbc_model_path = os.path.join(CURRENT_PATH, f"{GBC_NAME}.pkl")
+        arima_model_path = os.path.join(CURRENT_PATH, f"{ARIMA_NAME}.pkl")
+
+        arima_model = joblib.load(arima_model_path)
+        model_dic['arima_model'] = arima_model
+
+        gbc_model = joblib.load(gbc_model_path)
+        model_dic['gbc_model'] = gbc_model
+    except Exception as e:
+        print(f"Error loading models: {e}")
+    yield
+    # Clean up the ML models and release the resources
+    model_dic.clear()
+
+
 #https://fastapi.tiangolo.com/advanced/security/http-basic-auth/#simple-http-basic-auth
 security = HTTPBasic()
 
@@ -73,6 +112,7 @@ app = FastAPI(
     title="French Road Accidents FAST API Stuff",
     description= "Franc's rest api stuff for road accident severity predictions",
     version="1.0.0",
+    lifespan=lifespan,
     openapi_tags=[
         {
             'name':'test',
@@ -88,25 +128,25 @@ app = FastAPI(
 
 
 ##Startup
-@app.on_event("startup")
-async def startup_event():
-    try:
-        api.download_registry_model("fdevi3", "gradientboostingclassifier", output_path=CURRENT_PATH, expand=True,
-                                    stage=None)
-        api.download_registry_model("fdevi3", "forecast-arima-model", output_path=CURRENT_PATH,
-                                    expand=True,
-                                    stage=None)
-
-        gbc_model_path = os.path.join(CURRENT_PATH, f"{GBC_NAME}.pkl")
-        arima_model_path = os.path.join(CURRENT_PATH, f"{ARIMA_NAME}.pkl")
-
-        arima_model = joblib.load(arima_model_path)
-        model_dic['arima_model'] = arima_model
-
-        gbc_model = joblib.load(gbc_model_path)
-        model_dic['gbc_model'] = gbc_model
-    except Exception as e:
-        print(f"Error loading models: {e}")
+# @app.on_event("startup")
+# async def startup_event():
+#     try:
+#         api.download_registry_model("fdevi3", "gradientboostingclassifier", output_path=CURRENT_PATH, expand=True,
+#                                     stage=None)
+#         api.download_registry_model("fdevi3", "forecast-arima-model", output_path=CURRENT_PATH,
+#                                     expand=True,
+#                                     stage=None)
+#
+#         gbc_model_path = os.path.join(CURRENT_PATH, f"{GBC_NAME}.pkl")
+#         arima_model_path = os.path.join(CURRENT_PATH, f"{ARIMA_NAME}.pkl")
+#
+#         arima_model = joblib.load(arima_model_path)
+#         model_dic['arima_model'] = arima_model
+#
+#         gbc_model = joblib.load(gbc_model_path)
+#         model_dic['gbc_model'] = gbc_model
+#     except Exception as e:
+#         print(f"Error loading models: {e}")
 
 
 @app.get("/",tags=['production'])
