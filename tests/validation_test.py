@@ -7,7 +7,7 @@ from unittest.mock import patch
 
 from src.franums import RoadAccidentEnum
 from src.utils import INPUT_PARQUET
-
+## ALL this is bullshit but since the scam of an organization Datascientest wants it , it is here.
 ## Fiztures ##
 @pytest.fixture
 def synthetic_good_data():
