@@ -70,8 +70,8 @@ class AdminRequest(BaseModel):
 ##TODO implement random choice
 def generate_random_classifier_request():
     return ClassifierRequest(vehicle_category='1', obstacle_mobile='2', impact_point='1', action='1',
-        safety_equipment='2', road_surface='1', lum='2', weather='1', collision_type='1', speed_limit=80,
-        accident_hex_count=250, latitude=0.0, longitude=0.0)
+                             safety_equipment='2', road_surface='1', lum='2', weather='1', collision_type='1',
+                             speed_limit=80, accident_hex_count=250, latitude=0.0, longitude=0.0)
 
 
 ####COMET LOAD MODEL and SETUP
@@ -121,12 +121,13 @@ async def lifespan(app: FastAPI):
 security = HTTPBasic()
 
 app = FastAPI(title="French Road Accidents FAST API Stuff",
-    description="Franc's rest api stuff for road accident severity predictions", version="1.0.0", lifespan=lifespan,
-    openapi_tags=[{'name': 'test', 'description': 'Just for testing',
+              description="Franc's rest api stuff for road accident severity predictions", version="1.0.0",
+              lifespan=lifespan, openapi_tags=[{'name': 'test', 'description': 'Just for testing',
 
-    }, {'name': 'health', 'description': 'Health Monitoring',
+                                                }, {'name': 'health', 'description': 'Health Monitoring',
 
-    }, {'name': 'production', 'description': 'Production Ready'}, {'name': 'admin', 'description': 'Admin Only '}])
+                                                    }, {'name': 'production', 'description': 'Production Ready'},
+                                               {'name': 'admin', 'description': 'Admin Only '}])
 
 
 ############ MISC METHODS############
@@ -144,12 +145,13 @@ def authenticate(credentials: Annotated[HTTPBasicCredentials, Depends(security)]
     raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Incorrect Username or Password")
 
 
-@app.get("/", tags=['production'])
-async def read_main():
-    msg = {"msg": "Welcome to the French Road Accident Project", "opinion": "DataScientest Bootcamp is a scam"}
-    logger.info(f"Saying Hello via msg {msg} ")
-    return msg
+#########################APP##########################
+'''
+All of the Fast API Stuff
+'''
 
+
+#############TEST#########
 
 @app.get("/test/classifier_query", tags=['test'])
 async def get_query(filter_query: Annotated[ClassifierRequest, Query()]):
@@ -161,7 +163,20 @@ async def get_query(filter_query: Annotated[ForecastRequest, Query()]):
     return filter_query
 
 
-######REGION################
+@app.get("/permissions", tags=['test'])
+def authorize_user(username: Annotated[str, Depends(authenticate)]):
+    _msg = {'username': username}
+    logger.info(f"Username: {username} has logged in for testing")
+    return _msg
+
+
+###############PRODUCTION###############
+@app.get("/", tags=['production'])
+async def read_main():
+    msg = {"msg": "Welcome to the French Road Accident Project", "opinion": "DataScientest Bootcamp is a scam"}
+    logger.info(f"Saying Hello via msg {msg} ")
+    return msg
+
 
 ##Forecasting Endpoint
 @app.post("/predict/forecast", tags=['production'])
@@ -180,8 +195,8 @@ async def predict_severity(request: Annotated[ClassifierRequest, Query()]):
         hex_3 = h3.latlng_to_cell(request.latitude, request.longitude, H3_RESOLUTION)
         print(int(request.vehicle_category))
         features = [[request.vehicle_category, request.obstacle_mobile, request.impact_point, request.action,
-            request.safety_equipment, request.road_surface, request.lum, request.weather, request.collision_type,
-            request.speed_limit, request.accident_hex_count]]
+                     request.safety_equipment, request.road_surface, request.lum, request.weather,
+                     request.collision_type, request.speed_limit, request.accident_hex_count]]
         gbc_model = model_dic['gbc_model']
         prediction = gbc_model.predict(features)
         probability = gbc_model.predict_proba(features)[:, 1]
@@ -192,7 +207,7 @@ async def predict_severity(request: Annotated[ClassifierRequest, Query()]):
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(ex))
 
 
-#############Admin#############
+#############ADMIN#############
 @app.post("/admin/retrain", tags=['admin'])
 async def retrain_model(username: Annotated[str, Depends(authenticate)], request: Annotated[AdminRequest, Query()]):
     if username != 'admin':
@@ -206,7 +221,7 @@ async def retrain_model(username: Annotated[str, Depends(authenticate)], request
     return message
 
 
-##############Health#########################
+##############HEALTH#########################
 @app.get("/health/status", tags=['health'], name="Status Check")
 async def health_check():
     _status = {"status": "API is running"}
@@ -223,8 +238,8 @@ async def health_check_severity():
     try:
         request = generate_random_classifier_request()
         features = [[request.vehicle_category, request.obstacle_mobile, request.impact_point, request.action,
-            request.safety_equipment, request.road_surface, request.lum, request.weather, request.collision_type,
-            request.speed_limit, request.accident_hex_count]]
+                     request.safety_equipment, request.road_surface, request.lum, request.weather,
+                     request.collision_type, request.speed_limit, request.accident_hex_count]]
         gbc_model = model_dic['gbc_model']
         prediction = gbc_model.predict(features)
         probability = gbc_model.predict_proba(features)[:, 1]
