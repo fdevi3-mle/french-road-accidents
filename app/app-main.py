@@ -1,8 +1,10 @@
+import asyncio
+import importlib.util
 import logging
 import os
+import sys
 from contextlib import asynccontextmanager
 from typing import Annotated, Literal
-
 import h3
 import joblib
 from comet_ml.api import API
@@ -10,12 +12,6 @@ from fastapi import FastAPI, Query
 from fastapi import HTTPException, status
 from fastapi.security import HTTPBasic
 from pydantic import BaseModel, Field
-import importlib.util
-import os
-import runpy
-import sys
-import asyncio
-
 
 ###Start
 logger = logging.getLogger(__name__)
