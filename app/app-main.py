@@ -10,6 +10,12 @@ from fastapi import FastAPI, Query
 from fastapi import HTTPException, status
 from fastapi.security import HTTPBasic
 from pydantic import BaseModel, Field
+import importlib.util
+import os
+import runpy
+import sys
+import asyncio
+
 
 ###Start
 logger = logging.getLogger(__name__)
@@ -22,17 +28,20 @@ H3_RESOLUTION = 4
 GBC_NAME = "GradientBoostingClassifier"
 ARIMA_NAME = "ARIMA"
 
+###PATHS
 CURRENT_PATH = os.path.dirname(os.path.abspath(__file__))
+ZENML_FILE_PATH = os.path.join(CURRENT_PATH,'dummy-retrain.py')
+
+###COMET ML API
 api = API(api_key="Xh1kXXM0IIPgqwAP3wTyChS0R")
+
+##MODEL DIC
 model_dic = {}
 
 ##Stuff
 ##Admin Password
 ADMIN_USERNAME='admin'
 ADMIN_PASSWORD = "admin"
-
-
-
 
 ##Pydantic Model
 class ForecastRequest(BaseModel):
@@ -198,15 +207,18 @@ async def predict_severity(request:Annotated[ClassifierRequest, Query()]):
                             detail=str(ex))
 
 
-### Admin
+#############Admin#############
 @app.post("/admin/retrain", tags=['admin'])
 async def retrain_model(request:Annotated[AdminRequest, Query()]):
     message = {
         'message': f"Model Retraining Trigger is {request.retrain}"
     }
+    if bool(request.retrain):
+        print("Retraining The Model")
+        await load_file_as_module(name='module.name',location=ZENML_FILE_PATH)
     return message
 
-### Health
+##############Health#########################
 @app.get("/health/status",tags=['health'],name="Status Check")
 async def health_check():
     _status = {"status": "API is running"}
@@ -249,7 +261,16 @@ async def health_check_forecast():
         raise HTTPException(status_code=500, detail=str(e))
 
 
-
+##############RANDOM METHODS###############
+##https://stackoverflow.com/questions/3781851/run-a-python-script-from-another-python-script-passing-in-arguments
+#https://stackoverflow.com/questions/436198/what-alternative-is-there-to-execfile-in-python-3-how-to-include-a-python-fil/16577427#16577427
+#https://stackoverflow.com/questions/67631/how-can-i-import-a-module-dynamically-given-the-full-path
+async def load_file_as_module(name='module.name',location=ZENML_FILE_PATH):
+    spec = importlib.util.spec_from_file_location(name, location)
+    foo = importlib.util.module_from_spec(spec)
+    sys.modules[name] = foo
+    spec.loader.exec_module(foo)
+    foo.hello()
 
 
 #############REGION##################
