@@ -1,24 +1,14 @@
 import logging
 import os
+from typing import Annotated, Literal
 
 import h3
 import joblib
-from fastapi import FastAPI
+from fastapi import FastAPI, Query
+from fastapi import HTTPException, status
 from fastapi.security import HTTPBasic
-from pydantic import BaseModel
-from fastapi import FastAPI, HTTPException
-from pydantic import BaseModel
-import numpy as np
-from fastapi import FastAPI, Query
 from pydantic import BaseModel, Field
-import json
-from fastapi import Depends, HTTPException, status
-from fastapi import FastAPI, Query
-import secrets
-from typing import Annotated, Literal,List, Optional
-
-from src.utils import MODEL_PATH, ARIMA_NAME, GBC_NAME
-
+from comet_ml.api import API
 ###Start
 logger = logging.getLogger(__name__)
 
@@ -26,17 +16,32 @@ logger = logging.getLogger(__name__)
 DEFAULT_LAT = 47.149407
 DEFAULT_LONG = 2.277096
 H3_RESOLUTION = 4
+##MACHINE lEARNING
+GBC_NAME = "GradientBoostingClassifier"
+ARIMA_NAME = "ARIMA"
 
-##LOCAL ONLY
-ARIMA_MODEL_PATH = os.path.join(MODEL_PATH, f"{ARIMA_NAME}.pkl")
-GBC_MODEL_PATH = os.path.join(MODEL_PATH, f"{GBC_NAME}.pkl")
 
 
-try:
-    arima_model = joblib.load(ARIMA_MODEL_PATH)
-    gbc_model = joblib.load(GBC_MODEL_PATH)
-except Exception as e:
-    print(f"Error loading models: {e}")
+##COMET ML
+CURRENT_PATH = os.path.dirname(os.path.abspath(__file__))
+
+api = API(api_key="Xh1kXXM0IIPgqwAP3wTyChS0R")
+
+
+
+# try:
+#     api.download_registry_model("fdevi3", "gradientboostingclassifier", output_path=CURRENT_PATH, expand=True, stage=None)
+#     api.download_registry_model("fdevi3", "forecast-arima-model", version='latest', output_path=CURRENT_PATH, expand=True,
+#                                 stage=None)
+#
+#     arima_model = joblib.load(ARIMA_MODEL_PATH)
+#     gbc_model = joblib.load(GBC_MODEL_PATH)
+# except Exception as e:
+#     print(f"Error loading models: {e}")
+#
+#
+model_dic = {}
+
 
 
 ##Pydantic Model
@@ -81,6 +86,29 @@ app = FastAPI(
     ]
 )
 
+
+##Startup
+@app.on_event("startup")
+async def startup_event():
+    try:
+        api.download_registry_model("fdevi3", "gradientboostingclassifier", output_path=CURRENT_PATH, expand=True,
+                                    stage=None)
+        api.download_registry_model("fdevi3", "forecast-arima-model", output_path=CURRENT_PATH,
+                                    expand=True,
+                                    stage=None)
+
+        gbc_model_path = os.path.join(CURRENT_PATH, f"{GBC_NAME}.pkl")
+        arima_model_path = os.path.join(CURRENT_PATH, f"{ARIMA_NAME}.pkl")
+
+        arima_model = joblib.load(arima_model_path)
+        model_dic['arima_model'] = arima_model
+
+        gbc_model = joblib.load(gbc_model_path)
+        model_dic['gbc_model'] = gbc_model
+    except Exception as e:
+        print(f"Error loading models: {e}")
+
+
 @app.get("/",tags=['production'])
 async def read_main():
     msg = {"msg": "Welcome to the French Road Accident Project"}
@@ -110,6 +138,7 @@ async def get_query(filter_query: Annotated[ForecastRequest, Query()]):
 @app.post("/predict/forecast",tags=['production'])
 async def forecast_accidents(request:Annotated[ForecastRequest, Query()]):
     try:
+        arima_model = model_dic['arima_model']
         forecast = arima_model.predict(n_periods=request.periods)
         return {"forecast": forecast.tolist()}
     except Exception as e:
@@ -125,6 +154,7 @@ async def predict_severity(request:Annotated[ClassifierRequest, Query()]):
             request.lum, request.weather, request.collision_type, request.speed_limit,request.accident_hex_count
         ]]
 
+        gbc_model = model_dic['gbc_model']
         prediction = gbc_model.predict(features)
         probability = gbc_model.predict_proba(features)[:, 1]
 
