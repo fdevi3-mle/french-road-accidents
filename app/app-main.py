@@ -88,10 +88,13 @@ def get_arima_model():
 async def lifespan(app: FastAPI):
     # Load the ML model
     try:
-        get_gbc_model()
-        get_arima_model()
         gbc_model_path = os.path.join(CURRENT_PATH, f"{GBC_NAME}.pkl")
         arima_model_path = os.path.join(CURRENT_PATH, f"{ARIMA_NAME}.pkl")
+
+        if not os.path.isfile(gbc_model_path):
+            get_gbc_model()
+        if not os.path.isfile(arima_model_path):
+            get_arima_model()
 
         arima_model = joblib.load(arima_model_path)
         model_dic['arima_model'] = arima_model
