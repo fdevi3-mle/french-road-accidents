@@ -1,5 +1,7 @@
 import logging
 import os
+
+import h3
 import joblib
 from fastapi import FastAPI
 from fastapi.security import HTTPBasic
@@ -10,6 +12,8 @@ import numpy as np
 from fastapi import FastAPI, Query
 from pydantic import BaseModel, Field
 import json
+from fastapi import Depends, HTTPException, status
+from fastapi import FastAPI, Query
 import secrets
 from typing import Annotated, Literal,List, Optional
 
@@ -17,6 +21,11 @@ from src.utils import MODEL_PATH, ARIMA_NAME, GBC_NAME
 
 ###Start
 logger = logging.getLogger(__name__)
+
+## Some constants
+DEFAULT_LAT = 47.149407
+DEFAULT_LONG = 2.277096
+H3_RESOLUTION = 4
 
 ##LOCAL ONLY
 ARIMA_MODEL_PATH = os.path.join(MODEL_PATH, f"{ARIMA_NAME}.pkl")
@@ -46,6 +55,8 @@ class ClassifierRequest(BaseModel):
     collision_type: Literal['1','2','3','0']
     speed_limit:int = Field(50, gt=0, le=200)
     accident_hex_count:int = Field(250, gt=0, le=20000)
+    latitude: float = Field(DEFAULT_LAT, ge=-90, le=90)
+    longitude: float = Field(DEFAULT_LONG, ge=-180, le=180)
 
 
 
@@ -93,17 +104,39 @@ async def get_query(filter_query: Annotated[ClassifierRequest, Query()]):
 async def get_query(filter_query: Annotated[ForecastRequest, Query()]):
     return filter_query
 
+######REGION################
 
-@app.post("/predict/arima",tags=['production'])
-async def predict_arima(request:Annotated[ForecastRequest, Query()]):
+##Forecasting Endpoint
+@app.post("/predict/forecast",tags=['production'])
+async def forecast_accidents(request:Annotated[ForecastRequest, Query()]):
     try:
         forecast = arima_model.predict(n_periods=request.periods)
         return {"forecast": forecast.tolist()}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+@app.post("/predict/severity",tags=['production'])
+async def predict_severity(request:Annotated[ClassifierRequest, Query()]):
+    try:
+        hex_3 = h3.latlng_to_cell(request.latitude, request.longitude, H3_RESOLUTION)
+        features = [[
+            request.vehicle_category, request.obstacle_mobile, request.impact_point,
+            request.action, request.safety_equipment, request.road_surface,
+            request.lum, request.weather, request.collision_type, request.speed_limit,request.accident_hex_count
+        ]]
+
+        prediction = gbc_model.predict(features)
+        probability = gbc_model.predict_proba(features)[:, 1]
+
+        return {"prediction": int(prediction[0]), "probability": float(probability[0])}
+
+    except Exception as ex:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                            detail=str(ex))
 
 
+
+#############REGION##################
 ##Random stuff
 def do_stuff():
     print("Hii")
