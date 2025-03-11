@@ -215,7 +215,8 @@ async def retrain_model(request:Annotated[AdminRequest, Query()]):
     }
     if bool(request.retrain):
         print("Retraining The Model")
-        await load_file_as_module(name='module.name',location=ZENML_FILE_PATH)
+        #await load_file_as_module(name='module.name',location=ZENML_FILE_PATH)
+        asyncio.create_task(load_file_as_module('module.name', ZENML_FILE_PATH)) ## although blocking is a bit better to avoid overload
     return message
 
 ##############Health#########################
