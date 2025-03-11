@@ -158,7 +158,7 @@ def evidently_classifier_monitoring(X_train, X_test, y_train, y_test, model):
 
 
 @step
-def comet_ml_classifier(X_test,y_test,gbc_model,model_name='GradientBoostingClassifier'):
+def comet_ml_classifier(X_test,y_test,gbc_model,filepath=None):
     comet_classifier_experiment = start(
         api_key="Xh1kXXM0IIPgqwAP3wTyChS0R",
         project_name="french-road-accident-classifier",
@@ -172,9 +172,7 @@ def comet_ml_classifier(X_test,y_test,gbc_model,model_name='GradientBoostingClas
     comet_classifier_experiment.log_confusion_matrix(matrix=matrix)
 
     ##LOG Model
-    filename = ExtensionMethods.generate_filename_only(model_name, 'pkl')
-    filepath = os.path.join(MODEL_PATH, filename)
-    if not os.path.isfile(filepath):
+    if not filepath or not os.path.isfile(filepath):
         raise FileNotFoundError("Where GBC Model PKL File")
     comet_classifier_experiment.log_model("GradientBoostingClassifier",filepath)
 

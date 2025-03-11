@@ -231,7 +231,7 @@ def evidently_forecaster_monitoring(valid, model):
 
 
 @step
-def comet_ml_forecaster(valid,arima_model,model_name='ARIMA'):
+def comet_ml_forecaster(valid,arima_model,filepath=None):
     comet_forecast_experiment = start(
         api_key="Xh1kXXM0IIPgqwAP3wTyChS0R",
         project_name="french-forecaster",
@@ -249,14 +249,7 @@ def comet_ml_forecaster(valid,arima_model,model_name='ARIMA'):
 
     comet_forecast_experiment.log_metric("mape_score",mape_score)
 
-    # log_model(
-    #     experiment=comet_forecast_experiment,
-    #     model_name="Forecast-Arima-Model",
-    #     model=arima_model,
-    # )
-    filename = ExtensionMethods.generate_filename_only(model_name,'pkl')
-    filepath = os.path.join(MODEL_PATH,filename)
-    if not os.path.isfile(filepath):
+    if not filepath or not os.path.isfile(filepath):
         raise FileNotFoundError("Where ARIMA File")
     comet_forecast_experiment.log_model("Forecast-Arima-Model", filepath)
 

@@ -48,10 +48,10 @@ def mega_pipeline():
 
     logger.info(f"Saving the model")
     _gbc_name = "GradientBoostingClassifier"
-    save_model(gbc_model,_gbc_name)
+    _gbc_filepath = save_model(gbc_model,_gbc_name)
 
     logger.info("Starting the Comet ML Logging")
-    comet_ml_classifier(X_test,y_test,gbc_model,_gbc_name)
+    comet_ml_classifier(X_test,y_test,gbc_model,_gbc_filepath)
 
     logger.info(f"Starting the Time series step")
     ts = create_time_series_date(data_processed)
@@ -64,7 +64,7 @@ def mega_pipeline():
 
     logger.info(f"Saving the model")
     _arima_name = "ARIMA"
-    save_model(arima_model, _arima_name)
+    _arima_filepath = save_model(arima_model, _arima_name)
 
     logger.info(f"Evidently Classifier")
     evidently_classifier_monitoring(X_train, X_test, y_train, y_test, gbc_model)
@@ -73,7 +73,7 @@ def mega_pipeline():
     evidently_forecaster_monitoring(valid =forecast_test,model=arima_model)
 
     logger.info("Comet Ml Forcasting Logging")
-    comet_ml_forecaster(forecast_test,arima_model,_arima_name)
+    comet_ml_forecaster(forecast_test,arima_model,_arima_filepath)
 
 if __name__ == "__main__":
     mega_pipeline()
