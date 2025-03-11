@@ -4,6 +4,14 @@ import joblib
 from fastapi import FastAPI
 from fastapi.security import HTTPBasic
 from pydantic import BaseModel
+from fastapi import FastAPI, HTTPException
+from pydantic import BaseModel
+import numpy as np
+from fastapi import FastAPI, Query
+from pydantic import BaseModel, Field
+import json
+import secrets
+from typing import Annotated, Literal,List, Optional
 
 from src.utils import MODEL_PATH, ARIMA_NAME, GBC_NAME
 
@@ -23,9 +31,21 @@ except Exception as e:
 
 
 ##Pydantic Model
-class TimeSeriesRequest(BaseModel):
-    periods: int
+class ForecastRequest(BaseModel):
+    periods: int = Field(100, gt=0, le=366)
 
+class ClassifierRequest(BaseModel):
+    vehicle_category: Literal['1','2','3','4','0']
+    obstacle_mobile: Literal['1','2','3','0']
+    impact_point: Literal['1','2','3','4','0']
+    action: Literal['1','2','3','4','0']
+    safety_equipment: Literal['1','2','3','0']
+    road_surface: Literal['1','2','3','0']
+    lum: Literal['1','2','3','4','0']
+    weather: Literal['1','2','3','0']
+    collision_type: Literal['1','2','3','0']
+    speed_limit:int = Field(50, gt=0, le=200)
+    accident_hex_count:int = Field(250, gt=0, le=20000)
 
 
 
@@ -50,7 +70,7 @@ app = FastAPI(
     ]
 )
 
-@app.get("/")
+@app.get("/",tags=['production'])
 async def read_main():
     msg = {"msg": "Welcome to the French Road Accident Project"}
     logger.info(f"Saying Hello via msg {msg} ")
@@ -64,4 +84,31 @@ async def health_check():
     return _status
 
 
+
+@app.get("/test/classifier_query",tags=['test'])
+async def get_query(filter_query: Annotated[ClassifierRequest, Query()]):
+    return filter_query
+
+@app.get("/test/forecaster_query",tags=['test'])
+async def get_query(filter_query: Annotated[ForecastRequest, Query()]):
+    return filter_query
+
+
+@app.post("/predict/arima",tags=['production'])
+async def predict_arima(request:Annotated[ForecastRequest, Query()]):
+    try:
+        forecast = arima_model.predict(n_periods=request.periods)
+        return {"forecast": forecast.tolist()}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+
+##Random stuff
+def do_stuff():
+    print("Hii")
+
+
+if __name__ == "__main__":
+    do_stuff()
 
