@@ -1,6 +1,7 @@
 ## COMET ML
 import json
 from typing import Annotated
+from pandas import Int32Dtype
 
 import joblib
 import numpy as np
@@ -170,7 +171,7 @@ def data_validator(data):
             if index == 'vehicle_id':
                 columns[index] = Column(str)
             if (index == 'dob') or (index == 'age'):
-                columns[index] = Column(int32)
+                columns[index] = Column(Int32Dtype)
             if index == 'datetime':
                 columns[index] = Column(pa.DateTime)
             if (index == 'lat') or (index == 'long'):
