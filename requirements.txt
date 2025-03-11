@@ -19,3 +19,4 @@ neptune-sklearn
 evidently
 comet_ml
 pandera
+pytest

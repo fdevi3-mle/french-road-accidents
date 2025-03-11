@@ -118,7 +118,7 @@ def test_validation_synthetic_bad_data(synthetic_bad_data):
         print(exc.failure_cases)
         print("\nDataFrame object that failed validation:")
         print(exc.data)
-        assert True ## Lol, I failed 
+        assert True ## Lol, I failed
 
 
 
