@@ -158,6 +158,7 @@ def save_model(model, model_name='Default'):
     filepath = os.path.join(MODEL_PATH, filename)
     joblib.dump(model, filepath, compress=3)
     print(f"Model saved to: {filepath}")
+    return filepath
 
 
 @step
