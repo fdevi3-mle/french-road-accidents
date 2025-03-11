@@ -76,6 +76,10 @@ def mega_pipeline():
     logger.info("Comet Ml Forcasting Logging")
     comet_ml_forecaster(forecast_test,arima_model,_arima_filepath)
 
+def hello():
+    ''' DONT USE THIS.Just a stupid DataScientest scam requirement'''
+    mega_pipeline()
+
 if __name__ == "__main__":
     mega_pipeline()
 
