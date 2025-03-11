@@ -1,22 +1,14 @@
 import logging
 import os
 
-import joblib
 from zenml import pipeline
 from zenml.client import Client
 
-# stps
-from src.monolith import data_loader, drift_monitor, data_processor, prepare_train_test_split, gradboost_classifier, \
-    save_model, create_time_series_date, train_arima, predict_plot, evidently_classifier_monitoring, \
-    evidently_forecaster_monitoring, log_dataset, comet_ml_classifier
-from src.utils import INPUT_PARQUET, MODEL_PATH, ExtensionMethods
-
-from sklearn.ensemble import GradientBoostingClassifier
-from sklearn.metrics import classification_report
-from sklearn.metrics import mean_absolute_percentage_error, make_scorer
-from sklearn.metrics import confusion_matrix
-from sklearn.model_selection import train_test_split, RandomizedSearchCV
-from sklearn.preprocessing import StandardScaler
+from src.classifier_monolith import prepare_train_test_split, gradboost_classifier, comet_ml_classifier, \
+    evidently_classifier_monitoring
+from src.common_monolith import data_loader_common, log_dataset, drift_monitor, data_processor, save_model
+from src.forecast_monolith import create_time_series_date, train_arima, predict_plot, evidently_forecaster_monitoring, \
+    comet_ml_forecaster
 
 ##Activate logger and client
 logger = logging.getLogger(__name__)
@@ -30,43 +22,13 @@ Client().activate_stack(
     "default"
 )
 
-
-
-
-# def comet_ml_log_classifier(X_test,y_test,model_name):
-#     filename= ExtensionMethods.generate_filename_only(model_name,'pkl')
-#     filepath = os.path.join(MODEL_PATH,filename)
-#
-#     if not os.path.exists(filepath):
-#         raise FileNotFoundError(f"GBC Model file not found at {filepath}")
-#
-#     gbc_model = joblib.load(filepath)
-#     ## CometML
-#     y_pred = gbc_model.predict(X_test)
-#     report = classification_report(y_test,y_pred)
-#
-#     comet_experiment.log_parameters(gbc_model.get_params())
-#
-#     comet_experiment.log_metrics(report)
-#
-#     matrix = confusion_matrix(y_test, y_pred)
-#     print(matrix)
-#
-#     # Log the confusion matrix to Comet
-#     comet_experiment.log_confusion_matrix(matrix=matrix)
-#
-#     # Seamlessly log your SKLearn model
-#     log_model(comet_experiment, model=gbc_model, model_name="GradientBoostingClassifier")
-
-
 @pipeline(enable_cache=True)
 def mega_pipeline():
     logger.info(f"Starting the Dataloader Step")
-    dataset = data_loader()
+    dataset = data_loader_common()
 
     logger.info(f"Logging the Input Datasset as Artifacts")
     log_dataset(dataset)
-
 
     logger.info(f"Starting the Data Drifter Step")
     drift_monitor(dataset)
@@ -105,6 +67,9 @@ def mega_pipeline():
 
     logger.info("Evidently Forecasting")
     evidently_forecaster_monitoring(valid =forecast_test,model=arima_model)
+
+    logger.info("Comet Ml Forcasting Logging")
+    comet_ml_forecaster(forecast_test,arima_model)
 
 if __name__ == "__main__":
     mega_pipeline()

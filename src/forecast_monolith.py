@@ -2,12 +2,12 @@
 from comet_ml import start
 from comet_ml.integration.sklearn import log_model
 
-comet_forecast_experiment = start(
-  api_key="Xh1kXXM0IIPgqwAP3wTyChS0R",
-  project_name="french-forecaster",
-  workspace="fdevi3"
-)
-
+# comet_forecast_experiment = start(
+#   api_key="Xh1kXXM0IIPgqwAP3wTyChS0R",
+#   project_name="french-forecaster",
+#   workspace="fdevi3"
+# )
+#
 
 
 from typing import Tuple,Annotated
@@ -56,70 +56,6 @@ from evidently.future.datasets import DataDefinition
 from evidently.future.report import Report
 from evidently.future.presets import *
 from evidently.ui.workspace.cloud import CloudWorkspace
-
-
-
-@step
-def data_loader(filepath=INPUT_PARQUET)->Annotated[pd.DataFrame, "RoadAccidentInputDataFrame"]:
-    if filepath is None:
-        filepath = INPUT_PARQUET
-    data = pd.read_parquet(filepath)
-    valid_columns = RoadAccidentEnum.to_dict()
-    valid_columns = valid_columns.keys()
-    data = data[[col for col in data.columns if col in valid_columns]]
-    logger.info(f'Hey {data.head(1)}')
-    return data
-
-@step
-def data_processor(data)->Annotated[pd.DataFrame, "RoadDataProcessed"]:
-    ##clean missing values
-    mega_dic = RoadAccidentEnum.mega_dictionary()
-    replacement_dict = {}
-    num_cols = []
-    cat_cols = []
-    for index, value in mega_dic.items():
-        if mega_dic[index][1]:
-            replacement_dict[index] = value[0]
-            cat_cols.append(index)
-        else:
-            num_cols.append(index)
-
-    ##Num cleaner
-    missing_values_num = data[num_cols].isna().sum().sum()
-    print("NA values:", missing_values_num)
-    if missing_values_num > 0:
-        data = data.dropna()
-
-    ##cat cols cleaner
-    data[cat_cols] = data[cat_cols].fillna("UNKNOWN")
-
-    ##drop duplicates
-    duplicates = data[data.duplicated()]
-    num_duplicates = duplicates.shape[0]
-    print(f"Number of duplicate rows: {num_duplicates}")
-    if num_duplicates > 0:
-        data = data.drop_duplicates()
-
-    ##lat lon cleaning # Only Keep mainland france and the tiny island nearby
-    mask = (data['lat'] >= LAT_MIN) & (data['lat'] <= LAT_MAX) & (data['long'] >= LONG_MIN) & (data['long'] <= LONG_MAX)
-    data = data[mask]
-
-    ##hex count ## Count the number of accidents per h3 hex str
-    data['accident_hex_count'] = data.groupby('h3')['h3'].transform('count')
-
-    ## date
-    data['date'] = pd.to_datetime(
-        data['datetime']).dt.date  ##just incase , the hour processing is too much on the runner
-
-    ##convert to ordinal codes
-    data = data.replace(replacement_dict).fillna(0)
-    # clean up the stragglers
-    for index, value in replacement_dict.items():
-        data[index] = pd.to_numeric(data[index])
-        data[index] = data[index].replace(-1, 0)
-
-    print(data[cat_cols].head())
-    return data
 
 
 @step
@@ -266,16 +202,6 @@ def predict_plot(model, test) -> Tuple[ARIMA, str]:
 
 
 @step
-def save_model(model, model_name='Default'):
-    # https://alkaline-ml.com/pmdarima/auto_examples/arima/example_persisting_a_model.html#sphx-glr-auto-examples-arima-example-persisting-a-model-py
-    os.makedirs(MODEL_PATH, exist_ok=True)
-    filename = ExtensionMethods.generate_filename_only(model_name, 'pkl')
-    filepath = os.path.join(MODEL_PATH, filename)
-    joblib.dump(model, filepath, compress=3)
-    print(f"Model saved to: {filepath}")
-
-
-@step
 def evidently_forecaster_monitoring(valid, model):
     evi_ws = CloudWorkspace(token=EVIDENTLY_TOKEN, url="https://app.evidently.cloud")
     project = evi_ws.get_project(EVIDENTLY_PROJECT_FORECAST_ID)
@@ -306,6 +232,11 @@ def evidently_forecaster_monitoring(valid, model):
 
 @step
 def comet_ml_forecaster(valid,arima_model):
+    comet_forecast_experiment = start(
+        api_key="Xh1kXXM0IIPgqwAP3wTyChS0R",
+        project_name="french-forecaster",
+        workspace="fdevi3"
+    )
     cols = ['ds', 'y']
     valid = valid[cols]
 
@@ -324,5 +255,7 @@ def comet_ml_forecaster(valid,arima_model):
         model=arima_model,
     )
 
+
     # register model
-    comet_forecast_experiment.register_model(model_name="Forecast-ARIMA")
+    comet_forecast_experiment.register_model(model_name="Forecast-Arima-Model")
+    comet_forecast_experiment.end()
