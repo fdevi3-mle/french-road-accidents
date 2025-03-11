@@ -15,7 +15,7 @@ from zenml import step, ArtifactConfig
 from zenml.logger import get_logger
 
 from src.utils import ExtensionMethods, \
-    REPORT_PATH, EVIDENTLY_TOKEN, EVIDENTLY_PROJECT_CLASSIFIER_ID
+    REPORT_PATH, EVIDENTLY_TOKEN, EVIDENTLY_PROJECT_CLASSIFIER_ID, MODEL_PATH
 
 ##setup the logger
 logger = get_logger(__name__)
@@ -158,7 +158,7 @@ def evidently_classifier_monitoring(X_train, X_test, y_train, y_test, model):
 
 
 @step
-def comet_ml_classifier(X_test,y_test,gbc_model):
+def comet_ml_classifier(X_test,y_test,gbc_model,model_name='GradientBoostingClassifier'):
     comet_classifier_experiment = start(
         api_key="Xh1kXXM0IIPgqwAP3wTyChS0R",
         project_name="french-road-accident-classifier",
@@ -170,7 +170,15 @@ def comet_ml_classifier(X_test,y_test,gbc_model):
     comet_classifier_experiment.log_metrics(report)
     matrix = confusion_matrix(y_test, y_pred)
     comet_classifier_experiment.log_confusion_matrix(matrix=matrix)
-    log_model(comet_classifier_experiment, model=gbc_model, model_name="GradientBoostingClassifier")
+
+    ##LOG Model
+    filename = ExtensionMethods.generate_filename_only(model_name, 'pkl')
+    filepath = os.path.join(MODEL_PATH, filename)
+    if not os.path.isfile(filepath):
+        raise FileNotFoundError("Where GBC Model PKL File")
+    comet_classifier_experiment.log_model("GradientBoostingClassifier",filepath)
+
+    # log_model(comet_classifier_experiment, model=gbc_model, model_name="GradientBoostingClassifier")
 
     #register model
     comet_classifier_experiment.register_model(model_name="GradientBoostingClassifier")
