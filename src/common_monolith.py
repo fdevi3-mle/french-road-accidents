@@ -1,66 +1,51 @@
 ## COMET ML
-from comet_ml import Artifact, start
-from comet_ml.integration.sklearn import log_model
+import json
+from typing import Annotated
 
-
-
-
-from typing import Tuple,Annotated
 import joblib
-from imblearn.over_sampling import SMOTE
-from pmdarima import auto_arima
-from sklearn.base import ClassifierMixin
+import numpy as np
+from comet_ml import Artifact, start
+from numpy.array_api import int32
 # GBC
-from sklearn.metrics import confusion_matrix
-from sklearn.ensemble import GradientBoostingClassifier
-from sklearn.metrics import classification_report
-from sklearn.metrics import mean_absolute_percentage_error, make_scorer
-from sklearn.model_selection import train_test_split, RandomizedSearchCV
-from sklearn.preprocessing import StandardScaler
-from zenml import step, ArtifactConfig
+from zenml import step
 from zenml.logger import get_logger
 
 from src.franums import RoadAccidentEnum
-from src.utils import INPUT_PARQUET, LAT_MIN, LAT_MAX, LONG_MIN, LONG_MAX, TRAIN_DATE_LIMIT, ExtensionMethods, \
-    REPORT_PATH, FIGURE_PATH, MODEL_PATH, EVIDENTLY_TOKEN, EVIDENTLY_PROJECT_CLASSIFIER_ID, \
-    EVIDENTLY_PROJECT_FORECAST_ID
+from src.utils import INPUT_PARQUET, LAT_MIN, LAT_MAX, LONG_MIN, LONG_MAX, ExtensionMethods, \
+    MODEL_PATH, EVIDENTLY_TOKEN, EVIDENTLY_PROJECT_CLASSIFIER_ID
 
 ##setup the logger
 logger = get_logger(__name__)
 
 # Neptune AI
-import neptune
-import neptune.integrations.sklearn as npt_utils
 
 
 #  Warnings
 import warnings
-
 warnings.filterwarnings('ignore')
 
 # Set random state
 random_state = 42
 
-import matplotlib.pyplot as plt
 import os
-from pathlib import Path
 import pandas as pd
 
 # stats model
-from statsmodels.tsa.seasonal import seasonal_decompose
-from statsmodels.tsa.stattools import adfuller
 
 os.environ['CUDA_VISIBLE_DEVICES'] = '-1'
 ##
-from pmdarima import ARIMA
 
 #evidenly
-from evidently.future.datasets import Dataset, BinaryClassification, Regression
+from evidently.future.datasets import Dataset
 from evidently.future.datasets import DataDefinition
 
 from evidently.future.report import Report
 from evidently.future.presets import *
 from evidently.ui.workspace.cloud import CloudWorkspace
+
+##Data Validation
+import pandera as pa
+from pandera import Check, Column, DataFrameSchema
 
 
 @step
@@ -173,3 +158,76 @@ def save_model(model, model_name='Default'):
     joblib.dump(model, filepath, compress=3)
     print(f"Model saved to: {filepath}")
 
+
+@step
+def data_validator(data):
+    mega_dic = RoadAccidentEnum.mega_dictionary()
+    columns = {}
+    for index, value in mega_dic.items():
+        if mega_dic[index][1]:
+            columns[index] = Column(str)
+        else:
+            if index == 'vehicle_id':
+                columns[index] = Column(str)
+            if (index == 'dob') or (index == 'age'):
+                columns[index] = Column(int32)
+            if index == 'datetime':
+                columns[index] = Column(pa.DateTime)
+            if (index == 'lat') or (index == 'long'):
+                columns[index] = Column(float)
+            if index == 'h3':
+                columns[index] = Column(str)
+
+    schema = pa.DataFrameSchema(columns=columns)
+    try:
+        schema.validate(data, lazy=True)
+        print("All validated")
+    except pa.errors.SchemaErrors as exc:
+        print("Schema errors and failure cases:")
+        print(exc.failure_cases)
+        print("\nDataFrame object that failed validation:")
+        print(exc.data)
+
+
+# def test_shit(filepath=INPUT_PARQUET):
+#     data = pd.read_parquet(filepath)
+#     valid_columns = RoadAccidentEnum.to_dict()
+#     valid_columns = valid_columns.keys()
+#     data = data[[col for col in data.columns if col in valid_columns]]
+#     print(data.head(1))
+#
+#     mega_dic = RoadAccidentEnum.mega_dictionary()
+#     columns = {}
+#     for index, value in mega_dic.items():
+#         if mega_dic[index][1]:
+#             columns[index] = Column(str)
+#         else:
+#             if index == 'vehicle_id':
+#                 columns[index] = Column(str)
+#             if (index == 'dob') or (index=='age'):
+#                 columns[index] = Column(int32)
+#             if index == 'datetime':
+#                 columns[index] = Column(pa.DateTime)
+#             if (index=='lat') or (index=='long'):
+#                 columns[index] = Column(float)
+#             if index == 'h3':
+#                 columns[index] = Column(str)
+#
+#
+#     schema = pa.DataFrameSchema(columns=columns)
+#     print(schema)
+#     try:
+#         schema.validate(data, lazy=True)
+#         print("All validated")
+#     except pa.errors.SchemaErrors as exc:
+#         print("Schema errors and failure cases:")
+#         print(exc.failure_cases)
+#         print("\nDataFrame object that failed validation:")
+#         print(exc.data)
+#
+#
+#
+#
+#
+# if __name__ == "__main__":
+#     test_shit()

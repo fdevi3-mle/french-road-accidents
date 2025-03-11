@@ -6,7 +6,8 @@ from zenml.client import Client
 
 from src.classifier_monolith import prepare_train_test_split, gradboost_classifier, comet_ml_classifier, \
     evidently_classifier_monitoring
-from src.common_monolith import data_loader_common, log_dataset, drift_monitor, data_processor, save_model
+from src.common_monolith import data_loader_common, data_validator, log_dataset, drift_monitor, data_processor, \
+    save_model
 from src.forecast_monolith import create_time_series_date, train_arima, predict_plot, evidently_forecaster_monitoring, \
     comet_ml_forecaster
 
@@ -26,6 +27,9 @@ Client().activate_stack(
 def mega_pipeline():
     logger.info(f"Starting the Dataloader Step")
     dataset = data_loader_common()
+
+    logger.info("Starting the Data Validation Set")
+    data_validator(dataset)
 
     logger.info(f"Logging the Input Datasset as Artifacts")
     log_dataset(dataset)
