@@ -1,10 +1,10 @@
 ## COMET ML
-from comet_ml import Artifact, start
+from comet_ml import start
 from comet_ml.integration.sklearn import log_model
 
-comet_experiment = start(
+comet_forecast_experiment = start(
   api_key="Xh1kXXM0IIPgqwAP3wTyChS0R",
-  project_name="french-road-accidents",
+  project_name="french-forecaster",
   workspace="fdevi3"
 )
 
@@ -12,31 +12,21 @@ comet_experiment = start(
 
 from typing import Tuple,Annotated
 import joblib
-from imblearn.over_sampling import SMOTE
 from pmdarima import auto_arima
-from sklearn.base import ClassifierMixin
 # GBC
-from sklearn.metrics import confusion_matrix
-from sklearn.ensemble import GradientBoostingClassifier
-from sklearn.metrics import classification_report
 from sklearn.metrics import mean_absolute_percentage_error, make_scorer
-from sklearn.model_selection import train_test_split, RandomizedSearchCV
-from sklearn.preprocessing import StandardScaler
-from zenml import step, ArtifactConfig
+from zenml import step
 from zenml.logger import get_logger
 
 from src.franums import RoadAccidentEnum
 from src.utils import INPUT_PARQUET, LAT_MIN, LAT_MAX, LONG_MIN, LONG_MAX, TRAIN_DATE_LIMIT, ExtensionMethods, \
-    REPORT_PATH, FIGURE_PATH, MODEL_PATH, EVIDENTLY_TOKEN, EVIDENTLY_PROJECT_CLASSIFIER_ID, \
-    EVIDENTLY_PROJECT_FORECAST_ID
+    REPORT_PATH, FIGURE_PATH, MODEL_PATH, EVIDENTLY_TOKEN, EVIDENTLY_PROJECT_FORECAST_ID
 
 ##setup the logger
 logger = get_logger(__name__)
 
 # Neptune AI
 import neptune
-import neptune.integrations.sklearn as npt_utils
-
 
 #  Warnings
 import warnings
@@ -60,13 +50,12 @@ os.environ['CUDA_VISIBLE_DEVICES'] = '-1'
 from pmdarima import ARIMA
 
 #evidenly
-from evidently.future.datasets import Dataset, BinaryClassification, Regression
+from evidently.future.datasets import Dataset, Regression
 from evidently.future.datasets import DataDefinition
 
 from evidently.future.report import Report
 from evidently.future.presets import *
 from evidently.ui.workspace.cloud import CloudWorkspace
-
 
 
 
@@ -80,40 +69,6 @@ def data_loader(filepath=INPUT_PARQUET)->Annotated[pd.DataFrame, "RoadAccidentIn
     data = data[[col for col in data.columns if col in valid_columns]]
     logger.info(f'Hey {data.head(1)}')
     return data
-
-@step
-def log_dataset(data):
-    artifact = Artifact(name="RoadAccidentInputDataset", artifact_type="dataset")
-    artifact.add(local_path_or_data=INPUT_PARQUET)
-    comet_experiment.log_artifact(artifact)
-
-@step
-def drift_monitor(data):
-    ws = CloudWorkspace(token=EVIDENTLY_TOKEN, url="https://app.evidently.cloud")
-    project = ws.get_project(EVIDENTLY_PROJECT_CLASSIFIER_ID)
-
-    mid_point = len(data) // 2
-    data1 = data[:mid_point]
-    data2 = data[mid_point:]
-    eval_data1 = Dataset.from_pandas(
-        pd.DataFrame(data1),
-        data_definition=DataDefinition()
-    )
-    eval_data2 = Dataset.from_pandas(
-        pd.DataFrame(data2),
-        data_definition=DataDefinition()
-    )
-    report = Report([
-        DataSummaryPreset(),
-        DataDriftPreset(),
-    ],
-        include_tests="True")
-    my_eval = report.run(eval_data1,eval_data2)
-    ws.add_run(project.id, my_eval)
-
-
-# data['accident_hex_count'] = data.groupby('h3')['h3'].transform('count')
-# data['date'] = pd.to_datetime(data['datetime']).dt.date
 
 @step
 def data_processor(data)->Annotated[pd.DataFrame, "RoadDataProcessed"]:
@@ -320,114 +275,6 @@ def save_model(model, model_name='Default'):
     print(f"Model saved to: {filepath}")
 
 
-#region GBC
-@step
-def prepare_train_test_split(data)->Tuple[Annotated[pd.DataFrame,"X_train"], Annotated[pd.DataFrame,"X_test"],Annotated[pd.Series,"y_train"],Annotated[pd.Series,"y_test"]]:
-    features = ['vehicle_category', 'obstacle_mobile', 'impact_point', 'action', 'safety_equipment',
-                'road_surface', 'speed_limit', 'lum', 'weather', 'collision_type',
-                'accident_hex_count']
-    target = 'severity'
-    #seperate the minor and mjor
-    mask = data[target] > 1  # get rid of no injury
-    data = data[mask]
-    X = data[features]
-    y = data[target]
-    y = y.map(lambda r: 1 if r >= 3 else 0) # Major {Major+Killed}
-
-    ordinal_features = ['vehicle_category', 'obstacle_mobile', 'impact_point', 'action',
-                        'safety_equipment', 'road_surface',  'lum', 'weather',
-                        'collision_type']
-    for col in ordinal_features:
-        X[col] = X[col].replace(-1, 0).astype(int)
-
-
-    ##Smote for minority class
-    smote = SMOTE()
-    X_resampled, y_resampled = smote.fit_resample(X, y)
-    X_train, X_test, y_train, y_test = train_test_split(X_resampled, y_resampled, test_size=0.2,
-                                                        random_state=random_state)
-    ##scaling
-    scaler = StandardScaler()
-    num_features = ['speed_limit', 'accident_hex_count']
-    X_train[num_features] = scaler.fit_transform(X_train[num_features])
-    X_test[num_features] = scaler.transform(X_test[num_features])
-
-    return X_train, X_test, y_train, y_test
-
-@step
-def gradboost_classifier(X_train, X_test, y_train, y_test)->Annotated[ClassifierMixin,ArtifactConfig(name="GradientBoostingClassifier",tags=['classifier','gbc'])]:
-
-    #setup neptune
-    run = neptune.init_run(
-        project="France-Road-Accidents-Test/SeverityClassifier",
-        api_token="eyJhcGlfYWRkcmVzcyI6Imh0dHBzOi8vYXBwLm5lcHR1bmUuYWkiLCJhcGlfdXJsIjoiaHR0cHM6Ly9hcHAubmVwdHVuZS5haSIsImFwaV9rZXkiOiI0ZmQ1NTFlMi02ZTc0LTQyOTgtOTZjZC1kNGU5ODllOWM0ODEifQ==",
-    )
-    ##kinda stupid to put the api token in code but its the neptune ai instructions
-
-    params = {
-        'n_estimators': [1,2,3], ##change for higher iter , it can take over 30 mins for more than 200, and other learning rates, beware
-        'max_depth': [5,7,10],
-        'learning_rate': [0.01,0.1,0.5,1],
-        'max_features': ['auto', 'sqrt', 'log2']
-    }
-    ##CV=5 takes too long 
-    random_search = RandomizedSearchCV(GradientBoostingClassifier(random_state=random_state), cv=3, n_jobs=-1, verbose=2, param_distributions=params)
-    random_search.fit(X_train, y_train)
-    print(f"The best parameters: {random_search.best_params_}")
-    run["parameters"] = random_search.best_params_
-
-    best_est = random_search.best_estimator_
-    y_pred = best_est.predict(X_test)
-
-    report = classification_report(y_test, y_pred, output_dict=True)
-    _df = pd.DataFrame(report).transpose()
-
-    #where to save
-    xls_filename = ExtensionMethods.generate_filename("GradientBoostingClassifier", 'xls')
-    xls_filepath = os.path.join(REPORT_PATH, xls_filename)
-    _df.to_csv(xls_filepath, index=True)
-
-
-
-    run["classifier"] = npt_utils.create_classifier_summary(
-        best_est, X_train, X_test, y_train, y_test)
-    run.stop()
-    return best_est
-
-
-@step
-def evidently_classifier_monitoring(X_train, X_test, y_train, y_test, model):
-    ws = CloudWorkspace(token=EVIDENTLY_TOKEN, url="https://app.evidently.cloud")
-    project = ws.get_project(EVIDENTLY_PROJECT_CLASSIFIER_ID)
-
-    X_train['prediction'] = model.predict(X_train)
-    X_train['target'] = y_train
-
-    train_data = Dataset.from_pandas(
-        pd.DataFrame(X_train),
-        data_definition=DataDefinition(classification=[BinaryClassification(target="target", prediction_labels="prediction")])
-    )
-
-    X_test['prediction'] = model.predict(X_test)
-    X_test['target'] = y_test
-
-    test_data = Dataset.from_pandas(
-        pd.DataFrame(X_test),
-        data_definition=DataDefinition(
-            classification=[BinaryClassification(target="target", prediction_labels="prediction")])
-    )
-
-    report = Report([
-        DataSummaryPreset(),
-        DataDriftPreset(),
-        ClassificationPreset(),
-
-    ])
-    my_eval = report.run(train_data,test_data)
-    ws.add_run(project.id, my_eval)
-
-
-
 @step
 def evidently_forecaster_monitoring(valid, model):
     evi_ws = CloudWorkspace(token=EVIDENTLY_TOKEN, url="https://app.evidently.cloud")
@@ -458,14 +305,24 @@ def evidently_forecaster_monitoring(valid, model):
 
 
 @step
-def comet_ml_classifier(X_test,y_test,gbc_model):
-    y_pred = gbc_model.predict(X_test)
-    report = classification_report(y_test,y_pred,output_dict=True)
-    comet_experiment.log_parameters(gbc_model.get_params())
-    comet_experiment.log_metrics(report)
-    matrix = confusion_matrix(y_test, y_pred)
-    comet_experiment.log_confusion_matrix(matrix=matrix)
-    log_model(comet_experiment, model=gbc_model, model_name="GradientBoostingClassifier")
+def comet_ml_forecaster(valid,arima_model):
+    cols = ['ds', 'y']
+    valid = valid[cols]
 
-    #register model
-    comet_experiment.register_model(model_name="GradientBoostingClassifier")
+    ## Regression test stuff for the future forecast
+    valid['y'] = valid['y'].astype(float)
+    forecast = arima_model.predict(n_periods=len(valid))
+
+    mape_score = mean_absolute_percentage_error(valid['y'], forecast)
+    print(f"MAPE for time series score: {mape_score}")
+
+    comet_forecast_experiment.log_metric("mape_score",mape_score)
+
+    log_model(
+        experiment=comet_forecast_experiment,
+        model_name="Forecast-Arima-Model",
+        model=arima_model,
+    )
+
+    # register model
+    comet_forecast_experiment.register_model(model_name="Forecast-ARIMA")
