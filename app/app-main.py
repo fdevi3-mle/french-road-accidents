@@ -1,14 +1,16 @@
 import logging
 import os
-from typing import Annotated, Literal
 from contextlib import asynccontextmanager
+from typing import Annotated, Literal
+
 import h3
 import joblib
+from comet_ml.api import API
 from fastapi import FastAPI, Query
 from fastapi import HTTPException, status
 from fastapi.security import HTTPBasic
 from pydantic import BaseModel, Field
-from comet_ml.api import API
+
 ###Start
 logger = logging.getLogger(__name__)
 
@@ -20,27 +22,15 @@ H3_RESOLUTION = 4
 GBC_NAME = "GradientBoostingClassifier"
 ARIMA_NAME = "ARIMA"
 
-
-
-##COMET ML
 CURRENT_PATH = os.path.dirname(os.path.abspath(__file__))
-
 api = API(api_key="Xh1kXXM0IIPgqwAP3wTyChS0R")
-
-
-
-# try:
-#     api.download_registry_model("fdevi3", "gradientboostingclassifier", output_path=CURRENT_PATH, expand=True, stage=None)
-#     api.download_registry_model("fdevi3", "forecast-arima-model", version='latest', output_path=CURRENT_PATH, expand=True,
-#                                 stage=None)
-#
-#     arima_model = joblib.load(ARIMA_MODEL_PATH)
-#     gbc_model = joblib.load(GBC_MODEL_PATH)
-# except Exception as e:
-#     print(f"Error loading models: {e}")
-#
-#
 model_dic = {}
+
+##Stuff
+##Admin Password
+ADMIN_USERNAME='admin'
+ADMIN_PASSWORD = "admin"
+
 
 
 
@@ -63,7 +53,26 @@ class ClassifierRequest(BaseModel):
     latitude: float = Field(DEFAULT_LAT, ge=-90, le=90)
     longitude: float = Field(DEFAULT_LONG, ge=-180, le=180)
 
+class AdminRequest(BaseModel):
+    retrain:bool= Field(False,title="Retraining Trigger")
 
+##TODO implement random choice
+def generate_random_classifier_request():
+    return ClassifierRequest(
+        vehicle_category='1',
+        obstacle_mobile='2',
+        impact_point='1',
+        action='1',
+        safety_equipment='2',
+        road_surface='1',
+        lum='2',
+        weather='1',
+        collision_type='1',
+        speed_limit=80,
+        accident_hex_count=250,
+        latitude=0.0,
+        longitude=0.0
+    )
 
 ####API and SETUP
 
@@ -119,52 +128,33 @@ app = FastAPI(
     openapi_tags=[
         {
             'name':'test',
-            'description': 'Stuff for Testing',
+            'description': 'Just for testing',
+
+        },
+        {
+            'name': 'health',
+            'description': 'Health Monitoring',
 
         },
         {
             'name': 'production',
             'description': 'Production Ready'
+        },
+        {
+            'name': 'admin',
+            'description': 'Admin Only '
         }
     ]
 )
 
 
-##Startup
-# @app.on_event("startup")
-# async def startup_event():
-#     try:
-#         api.download_registry_model("fdevi3", "gradientboostingclassifier", output_path=CURRENT_PATH, expand=True,
-#                                     stage=None)
-#         api.download_registry_model("fdevi3", "forecast-arima-model", output_path=CURRENT_PATH,
-#                                     expand=True,
-#                                     stage=None)
-#
-#         gbc_model_path = os.path.join(CURRENT_PATH, f"{GBC_NAME}.pkl")
-#         arima_model_path = os.path.join(CURRENT_PATH, f"{ARIMA_NAME}.pkl")
-#
-#         arima_model = joblib.load(arima_model_path)
-#         model_dic['arima_model'] = arima_model
-#
-#         gbc_model = joblib.load(gbc_model_path)
-#         model_dic['gbc_model'] = gbc_model
-#     except Exception as e:
-#         print(f"Error loading models: {e}")
 
 
 @app.get("/",tags=['production'])
 async def read_main():
-    msg = {"msg": "Welcome to the French Road Accident Project"}
+    msg = {"msg": "Welcome to the French Road Accident Project","opinion":"DataScientest Bootcamp is a scam"}
     logger.info(f"Saying Hello via msg {msg} ")
     return msg
-
-
-@app.get("/health",tags=['test'],name="Status Check")
-async def health_check():
-    _status = {"status": "API is running"}
-    logger.info(f" Health Status {_status}")
-    return _status
-
 
 
 @app.get("/test/classifier_query",tags=['test'])
@@ -191,12 +181,12 @@ async def forecast_accidents(request:Annotated[ForecastRequest, Query()]):
 async def predict_severity(request:Annotated[ClassifierRequest, Query()]):
     try:
         hex_3 = h3.latlng_to_cell(request.latitude, request.longitude, H3_RESOLUTION)
+        print(int(request.vehicle_category))
         features = [[
             request.vehicle_category, request.obstacle_mobile, request.impact_point,
             request.action, request.safety_equipment, request.road_surface,
             request.lum, request.weather, request.collision_type, request.speed_limit,request.accident_hex_count
         ]]
-
         gbc_model = model_dic['gbc_model']
         prediction = gbc_model.predict(features)
         probability = gbc_model.predict_proba(features)[:, 1]
@@ -208,13 +198,88 @@ async def predict_severity(request:Annotated[ClassifierRequest, Query()]):
                             detail=str(ex))
 
 
+### Admin
+@app.post("/admin/retrain", tags=['admin'])
+async def retrain_model(request:Annotated[AdminRequest, Query()]):
+    message = {
+        'message': f"Model Retraining Trigger is {request.retrain}"
+    }
+    return message
+
+### Health
+@app.get("/health/status",tags=['health'],name="Status Check")
+async def health_check():
+    _status = {"status": "API is running"}
+    logger.info(f" Health Status {_status}")
+    return _status
+
+ ## This is stupid but the sham of a course from Datascientest asks for it ,If they only put the same motivation in designing their course it wont be a scam
+@app.get("/health/severity",tags=['health'],name="Severity Classifier Model Check")
+async def health_check_severity():
+
+    gbc_model  = model_dic['gbc_model']
+    if gbc_model is None:
+        raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE,detail="Severity Classifier not loaded")
+    try:
+        request = generate_random_classifier_request()
+        features = [[
+            request.vehicle_category, request.obstacle_mobile, request.impact_point,
+            request.action, request.safety_equipment, request.road_surface,
+            request.lum, request.weather, request.collision_type, request.speed_limit,request.accident_hex_count
+        ]]
+        gbc_model = model_dic['gbc_model']
+        prediction = gbc_model.predict(features)
+        probability = gbc_model.predict_proba(features)[:, 1]
+        _message = {"prediction": int(prediction[0]), "probability": float(probability[0]), "health":"Model is Healthy" if float(probability[0]) >0.25 else "Model Unhealthy"}
+        return _message
+    except Exception as ex:
+        raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+                            detail=str(ex))
+
+
+@app.get("/health/forecast",tags=['health'],name="Forecast Model Check")
+async def health_check_forecast():
+    arima_model = model_dic['arima_model']
+    if arima_model is None:
+        raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail="Forecast Model not loaded")
+    try:
+        forecast = arima_model.predict(n_periods=69) ##Some random value
+        return {"forecast": forecast.tolist(), 'health':'Model is healthy' if len(forecast.tolist())==69 else "Model Unhealthy"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+
+
 
 #############REGION##################
 ##Random stuff
 def do_stuff():
     print("Hii")
 
+##Startup
+# @app.on_event("startup")
+# async def startup_event():
+#     try:
+#         api.download_registry_model("fdevi3", "gradientboostingclassifier", output_path=CURRENT_PATH, expand=True,
+#                                     stage=None)
+#         api.download_registry_model("fdevi3", "forecast-arima-model", output_path=CURRENT_PATH,
+#                                     expand=True,
+#                                     stage=None)
+#
+#         gbc_model_path = os.path.join(CURRENT_PATH, f"{GBC_NAME}.pkl")
+#         arima_model_path = os.path.join(CURRENT_PATH, f"{ARIMA_NAME}.pkl")
+#
+#         arima_model = joblib.load(arima_model_path)
+#         model_dic['arima_model'] = arima_model
+#
+#         gbc_model = joblib.load(gbc_model_path)
+#         model_dic['gbc_model'] = gbc_model
+#     except Exception as e:
+#         print(f"Error loading models: {e}")
 
+
+#TODO Remove this region
 if __name__ == "__main__":
     do_stuff()
 
