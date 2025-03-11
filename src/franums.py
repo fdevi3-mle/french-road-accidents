@@ -1,6 +1,7 @@
 import json
 from enum import Enum
-
+import pandera as pa
+from pandera import Column, Check
 
 class CategoryBaseEnum(Enum):
     @classmethod
