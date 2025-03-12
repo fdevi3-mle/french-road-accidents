@@ -1,13 +1,10 @@
 comet_ml~=3.49.4
-pandera~=0.23.1
 pytest~=8.3.5
 pandas~=2.2.3
 joblib~=1.4.2
-pyarrow
 requests~=2.32.3
 pmdarima~=2.0.4
 scikit-learn~=1.4.0
-statsmodels~=0.14.0
 numpy~=1.26.4
 scipy~=1.11.4
 zenml~=0.75.0
