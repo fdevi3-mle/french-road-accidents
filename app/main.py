@@ -150,15 +150,16 @@ def authenticate(credentials: Annotated[HTTPBasicCredentials, Depends(security)]
 
     raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Incorrect Username or Password")
 
+
 def convert_json_to_dataframe(json_ob=None, expected_feature=None):
     if json_ob is None:
         raise ValueError("Give me a json object")
     ## I will assume that what I get is a BaseModel.model_dump_json
     ## Convert it to a python dic
     json_dic = json.loads(json_ob)
-    _df = pd.DataFrame.from_dict([json_dic]) ## Converrted to a dataframe
+    _df = pd.DataFrame.from_dict([json_dic])  ## Converrted to a dataframe
     ## Since we use Literal for selecttion , we need to convert them back, Can actually use Field for Production
-    cat_cols = _df.select_dtypes(include=['object','string'])
+    cat_cols = _df.select_dtypes(include=['object', 'string'])
     for col in cat_cols:
         _df[col] = _df[col].astype(int)
 
@@ -166,6 +167,7 @@ def convert_json_to_dataframe(json_ob=None, expected_feature=None):
     if expected_feature is None:
         return _df
     return _df[expected_feature]
+
 
 #########################APP##########################
 '''
@@ -215,16 +217,21 @@ async def forecast_accidents(request: Annotated[ForecastRequest, Query()]):
 async def predict_severity(request: Annotated[ClassifierRequest, Query()]):
     try:
         hex_3 = h3.latlng_to_cell(request.latitude, request.longitude, H3_RESOLUTION)
-        print(int(request.vehicle_category))
-        features = [[request.vehicle_category, request.obstacle_mobile, request.impact_point, request.action,
-                     request.safety_equipment, request.road_surface, request.lum, request.weather,
-                     request.collision_type, request.speed_limit, request.accident_hex_count]]
+        # features = [[request.vehicle_category, request.obstacle_mobile, request.impact_point, request.action,
+        #              request.safety_equipment, request.road_surface, request.lum, request.weather,
+        #              request.collision_type, request.speed_limit, request.accident_hex_count]]
+
         gbc_model = model_dic['gbc_model']
-        prediction = gbc_model.predict(features)
-        probability = gbc_model.predict_proba(features)[:, 1]
+        _expected_feature_order = list(gbc_model.feature_names_in_)
+        if gbc_model is None:
+            raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+                                detail="Severity Classifier not loaded")
 
+        _json_dump = request.model_dump_json()
+        _df = convert_json_to_dataframe(_json_dump, _expected_feature_order)
+        prediction = gbc_model.predict(_df)
+        probability = gbc_model.predict_proba(_df)[:, 1]
         return {"prediction": int(prediction[0]), "probability": float(probability[0])}
-
     except Exception as ex:
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(ex))
 
@@ -255,13 +262,13 @@ async def health_check():
 @app.get("/health/severity", tags=['health'], name="Severity Classifier Model Check")
 async def health_check_severity():
     gbc_model = model_dic['gbc_model']
-    _expected_feature_order= list(gbc_model.feature_names_in_)
+    _expected_feature_order = list(gbc_model.feature_names_in_)
     if gbc_model is None:
         raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail="Severity Classifier not loaded")
     try:
         request = generate_random_classifier_request()
         _json_dump = request.model_dump_json()
-        _df = convert_json_to_dataframe(_json_dump,_expected_feature_order)
+        _df = convert_json_to_dataframe(_json_dump, _expected_feature_order)
         gbc_model = model_dic['gbc_model']
         prediction = gbc_model.predict(_df)
         probability = gbc_model.predict_proba(_df)[:, 1]
