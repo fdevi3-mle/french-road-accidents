@@ -267,7 +267,7 @@ async def health_check_severity():
         raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail="Severity Classifier not loaded")
     try:
         request = generate_random_classifier_request()
-        _json_dump = request.model_dump_json()
+        _json_dump = request.json()
         _df = convert_json_to_dataframe(_json_dump, _expected_feature_order)
         gbc_model = model_dic['gbc_model']
         prediction = gbc_model.predict(_df)
