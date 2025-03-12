@@ -4,10 +4,14 @@ import os
 import runpy
 import sys
 
-from app.main import ForecastRequest
+import joblib
+import pandas as pd
+
+from app.main import ForecastRequest, ClassifierRequest, generate_random_classifier_request
 
 CURRENT_PATH = os.path.dirname(os.path.abspath(__file__))
 ZENML_FILE_PATH = os.path.join(CURRENT_PATH,'dummy-retrain.py')
+GBC_MODEL_PATH = os.path.join(CURRENT_PATH,"GradientBoostingClassifier.pkl")
 
 
 #############REGION##################
@@ -30,10 +34,28 @@ def load_file_as_module(name='module.name',location=ZENML_FILE_PATH):
     spec.loader.exec_module(foo)
     foo.hello()
 
+#https://stackoverflow.com/questions/56443966/convert-dictionary-to-python-dataframe?noredirect=1&lq=1
 def dummy_request():
-    a = ForecastRequest()
-    print(json.dumps(ForecastRequest(periods=69).model_dump_json()))
+    a = generate_random_classifier_request()
+    a = a.model_dump_json()
+    a_dict = json.loads(a)
+    df = pd.DataFrame.from_dict([a_dict])
+    cat_cols = df.select_dtypes(include=['object','string'])
+    for col in cat_cols:
+        df[col]  = df[col].astype(int)
+
+    print(df.info())
+    print(df)
+
+def load_model(path=GBC_MODEL_PATH):
+    if not os.path.isfile(path):
+        raise FileNotFoundError("Noooo fole")
+
+    gbc_model = joblib.load(path)
+    expected_features = list(gbc_model.feature_names_in_)
+    print("Model expects features:", expected_features)
+
 
 if __name__ == "__main__":
-    dummy_request()
+    load_model()
 

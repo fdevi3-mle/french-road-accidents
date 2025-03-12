@@ -1,5 +1,6 @@
 import asyncio
 import importlib.util
+import json
 import logging
 import os
 import secrets
@@ -9,6 +10,7 @@ from typing import Annotated, Literal
 
 import h3
 import joblib
+import pandas as pd
 from comet_ml.api import API
 from fastapi import Depends, HTTPException, status
 from fastapi import FastAPI, Query
@@ -54,14 +56,18 @@ class ClassifierRequest(BaseModel):
     action: Literal['1', '2', '3', '4', '0']
     safety_equipment: Literal['1', '2', '3', '0']
     road_surface: Literal['1', '2', '3', '0']
+    speed_limit: int = Field(50, gt=0, le=200)
     lum: Literal['1', '2', '3', '4', '0']
     weather: Literal['1', '2', '3', '0']
     collision_type: Literal['1', '2', '3', '0']
-    speed_limit: int = Field(50, gt=0, le=200)
     accident_hex_count: int = Field(250, gt=0, le=20000)
     latitude: float = Field(DEFAULT_LAT, ge=-90, le=90)
     longitude: float = Field(DEFAULT_LONG, ge=-180, le=180)
 
+
+# ['vehicle_category' 'obstacle_mobile' 'impact_point' 'action'
+#  'safety_equipment' 'road_surface' 'speed_limit' 'lum' 'weather'
+#  'collision_type' 'accident_hex_count']
 
 class AdminRequest(BaseModel):
     retrain: bool = Field(False, title="Retraining Trigger")
@@ -144,6 +150,22 @@ def authenticate(credentials: Annotated[HTTPBasicCredentials, Depends(security)]
 
     raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Incorrect Username or Password")
 
+def convert_json_to_dataframe(json_ob=None, expected_feature=None):
+    if json_ob is None:
+        raise ValueError("Give me a json object")
+    ## I will assume that what I get is a BaseModel.model_dump_json
+    ## Convert it to a python dic
+    json_dic = json.loads(json_ob)
+    _df = pd.DataFrame.from_dict([json_dic]) ## Converrted to a dataframe
+    ## Since we use Literal for selecttion , we need to convert them back, Can actually use Field for Production
+    cat_cols = _df.select_dtypes(include=['object','string'])
+    for col in cat_cols:
+        _df[col] = _df[col].astype(int)
+
+    _df = _df.drop(columns=['latitude', 'longitude'], errors='ignore')
+    if expected_feature is None:
+        return _df
+    return _df[expected_feature]
 
 #########################APP##########################
 '''
@@ -233,16 +255,16 @@ async def health_check():
 @app.get("/health/severity", tags=['health'], name="Severity Classifier Model Check")
 async def health_check_severity():
     gbc_model = model_dic['gbc_model']
+    _expected_feature_order= list(gbc_model.feature_names_in_)
     if gbc_model is None:
         raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail="Severity Classifier not loaded")
     try:
         request = generate_random_classifier_request()
-        features = [[request.vehicle_category, request.obstacle_mobile, request.impact_point, request.action,
-                     request.safety_equipment, request.road_surface, request.lum, request.weather,
-                     request.collision_type, request.speed_limit, request.accident_hex_count]]
+        _json_dump = request.model_dump_json()
+        _df = convert_json_to_dataframe(_json_dump,_expected_feature_order)
         gbc_model = model_dic['gbc_model']
-        prediction = gbc_model.predict(features)
-        probability = gbc_model.predict_proba(features)[:, 1]
+        prediction = gbc_model.predict(_df)
+        probability = gbc_model.predict_proba(_df)[:, 1]
         _message = {"prediction": int(prediction[0]), "probability": float(probability[0]),
                     "health": "Model is Healthy" if float(probability[0]) > 0.15 else "Model Unhealthy"}
         return _message
