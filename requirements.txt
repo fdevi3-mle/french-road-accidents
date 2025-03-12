@@ -21,6 +21,6 @@ comet_ml
 pandera
 pytest
 pydantic
-fastapi[standard]
+fastapi
 h3
 starlette
