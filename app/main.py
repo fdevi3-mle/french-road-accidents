@@ -235,6 +235,8 @@ async def predict_severity(request: Annotated[ClassifierRequest, Query()]):
 
 
 #############ADMIN#############
+#TODO Add background task
+#https://fastapi.tiangolo.com/tutorial/background-tasks/#technical-details
 @app.post("/admin/retrain", tags=['admin'])
 async def retrain_model(username: Annotated[str, Depends(authenticate)], request: Annotated[AdminRequest, Query()]):
     if username != 'admin':
