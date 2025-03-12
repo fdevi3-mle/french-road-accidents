@@ -53,6 +53,19 @@ def test_forecast_query():
     print(response.json())
     assert response.json() == {"periods":69}
 
+#https://fastapi.tiangolo.com/advanced/testing-events/
+## I just love FAST API docs compared to the Titantic that was Datascientest Course
+def test_forecast_health():
+    with TestClient(app) as client:
+        response = client.get(health_forecast_url)
+        assert response.status_code == status.HTTP_200_OK
+        assert response.json()['health'] == "Model is Healthy"
+
+def test_severity_health():
+    with TestClient(app) as client:
+        response = client.get(health_severity_url)
+        assert response.status_code == status.HTTP_200_OK
+        assert response.json()['health'] == "Model is Healthy"
 
 
 

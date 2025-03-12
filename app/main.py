@@ -244,7 +244,7 @@ async def health_check_severity():
         prediction = gbc_model.predict(features)
         probability = gbc_model.predict_proba(features)[:, 1]
         _message = {"prediction": int(prediction[0]), "probability": float(probability[0]),
-                    "health": "Model is Healthy" if float(probability[0]) > 0.25 else "Model Unhealthy"}
+                    "health": "Model is Healthy" if float(probability[0]) > 0.15 else "Model Unhealthy"}
         return _message
     except Exception as ex:
         raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail=str(ex))
@@ -258,7 +258,7 @@ async def health_check_forecast():
     try:
         forecast = arima_model.predict(n_periods=69)  ##Some random value
         return {"forecast": forecast.tolist(),
-                'health': 'Model is healthy' if len(forecast.tolist()) == 69 else "Model Unhealthy"}
+                'health': "Model is Healthy" if len(forecast.tolist()) == 69 else "Model Unhealthy"}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
