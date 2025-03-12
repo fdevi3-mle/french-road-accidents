@@ -13,5 +13,5 @@ COPY . /code/app
 #COPY ./utils.py /code/
 EXPOSE 8000
 ##RUN the ADNMIN
-CMD ["python", "/code/docker_2_test.py"]
+CMD ["python", "app/docker_1_test.py"]
 

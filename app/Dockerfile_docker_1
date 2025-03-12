@@ -13,5 +13,5 @@ COPY . /code/app
 #COPY ./utils.py /code/
 EXPOSE 8000
 ##RUN the NORMAL User client
-CMD ["python", "/code/docker_1_test.py"]
+CMD ["python", "app/docker_1_test.py"]
 
