@@ -14,6 +14,7 @@ query_forecast_url = base_url + "/test/forecaster_query"
 permission_url = base_url + "/permissions"
 health_forecast_url = base_url + "/health/forecast"
 health_severity_url = base_url + "/health/severity"
+admin_retrain_url = base_url + "/admin/retrain"
 
 ## Logger
 CURRENT_PATH = os.path.dirname(os.path.abspath(__file__))
@@ -38,7 +39,7 @@ def generate_logger(_logpath=LOG_PATH, filename="default"):
     logger.info(f"Hi, Logger Fired Up  for {filename}!!")
 
 
-##Simulate Clients
+##Simulate ADMIN USER
 
 def read_main():
     response = requests.get(hello_url)
@@ -51,51 +52,33 @@ def read_health_status():
     print(f" Docker 1 pokes health @ {health_url} and receives {response.json()}")
 
 
-# def read_permission():
-#     auth = basic_auth('admin','admin')
-#     response = requests.get(permission_url,headers={"Authorization": auth})
-#     logger.info(f"Docker 1 pokes @ {permission_url} and receives {response.json()} with status code {response.status_code}")
-#     print(f"Docker 1 pokes @ {permission_url} and receives {response.json()} with status code {response.status_code}")
+def read_permission():
+    auth = basic_auth('admin','admin')
+    response = requests.get(permission_url,headers={"Authorization": auth})
+    logger.info(f"Docker 1 pokes @ {permission_url} and receives {response.json()} with status code {response.status_code}")
+    print(f"Docker 1 pokes @ {permission_url} and receives {response.json()} with status code {response.status_code}")
 
-
-def read_forecast_query():
-    params = {'periods':13}
-    response = requests.get(query_forecast_url,params=params)
-    logger.info(f"Docker 1 pokes @ {query_forecast_url} and receives {response.json()} with status code {response.status_code}")
-    print(f"Docker 1 pokes @ {query_forecast_url} and receives {response.json()} with status code {response.status_code}")
-
-def read_forecast_health():
-    response= requests.get(health_forecast_url)
-    logger.info(
-        f"Docker 1 pokes @ {health_forecast_url}  with status code {response.status_code}")
-    print(
-        f"Docker 1 pokes @ {query_forecast_url} with status code {response.status_code}")
-    print(response.json())
-
-def read_severity_health():
-    response= requests.get(health_severity_url)
-    logger.info(
-        f"Docker 1 pokes @ {health_severity_url}  with status code {response.status_code}")
-    print(
-        f"Docker 1 pokes @ {health_severity_url} with status code {response.status_code}")
-    print(response.json())
-
+def do_retraining(retrain=False):
+    auth = basic_auth('admin', 'admin')
+    params = {"retrain":retrain}
+    response = requests.post(admin_retrain_url,params=params,headers={"Authorization": auth})
+    logger.info(f"Docker 1 pokes @ {admin_retrain_url} and receives {response.json()} with status code {response.status_code}")
+    print(f"Docker 1 pokes @ {admin_retrain_url} and receives {response.json()} with status code {response.status_code}")
 
 
 ### MAIN
 
 if __name__=="__main__":
     generate_logger(filename='docker_1')
-    time.sleep(10) ## sleep till it all starts up
-    for i in range(5):
+    time.sleep(30) ## sleep till it all starts up
+    for i in range(3):
         read_main()
         time.sleep(1)
         read_health_status()
         time.sleep(1)
-        read_forecast_query()
+        read_permission()
         time.sleep(1)
-        read_severity_health()
-        time.sleep(1)
+    do_retraining(True) ## Do iit once only
 
 
 
