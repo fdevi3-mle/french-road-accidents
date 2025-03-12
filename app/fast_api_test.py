@@ -3,15 +3,17 @@ import base64
 from fastapi.testclient import TestClient
 from starlette import status
 
-from app.main import app
+from app.main import app, ForecastRequest
 
 ##urls
 base_url="http://127.0.0.1:8000"
 hello_url = base_url+"/"
 health_url = base_url + "/health/status"
-test_classifier_url = base_url+ "/test/classifier_query"
-test_forecaster_url = base_url+"/test/forecaster_query"
+query_forecast_url = base_url + "/test/forecaster_query"
 permission_url = base_url + "/permissions"
+health_forecast_url = base_url+ "/health/forecast"
+health_severity_url = base_url+ "/health/severity"
+
 
 
 ##https://stackoverflow.com/questions/6999565/python-https-get-with-basic-authentication
@@ -43,4 +45,14 @@ def test_permission_bad_username():
     response = client.get(permission_url, headers={"Authorization": basic_auth('hacker','hacker')})
     assert response.status_code == status.HTTP_401_UNAUTHORIZED
     assert response.json() != {'username':'admin'}
+
+##One can never be too childish for :P
+def test_forecast_query():
+    response = client.get(query_forecast_url, params={'periods': 69})
+    assert response.status_code == status.HTTP_200_OK
+    print(response.json())
+    assert response.json() == {"periods":69}
+
+
+
 

@@ -1,7 +1,10 @@
 import importlib.util
+import json
 import os
 import runpy
 import sys
+
+from app.main import ForecastRequest
 
 CURRENT_PATH = os.path.dirname(os.path.abspath(__file__))
 ZENML_FILE_PATH = os.path.join(CURRENT_PATH,'dummy-retrain.py')
@@ -27,7 +30,10 @@ def load_file_as_module(name='module.name',location=ZENML_FILE_PATH):
     spec.loader.exec_module(foo)
     foo.hello()
 
+def dummy_request():
+    a = ForecastRequest()
+    print(json.dumps(ForecastRequest(periods=69).model_dump_json()))
 
 if __name__ == "__main__":
-    load_file_as_module(ZENML_FILE_PATH)
+    dummy_request()
 
