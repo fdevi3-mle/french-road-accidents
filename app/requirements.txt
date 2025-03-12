@@ -1,13 +1,10 @@
 comet_ml
 pandera
 pytest
-pydantic
 h3
-starlette
 pandas
 joblib
 pyarrow
-fastapi
 requests~=2.32.3
 pmdarima~=2.0.4
 scikit-learn~=1.4.0
@@ -15,3 +12,5 @@ statsmodels~=0.14.0
 numpy~=1.26.4
 scipy~=1.11.4
 zenml~=0.75.0
+fastapi[standard]>=0.113.0,<0.114.0
+pydantic>=2.7.0,<3.0.0
