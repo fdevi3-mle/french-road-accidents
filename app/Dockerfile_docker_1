@@ -1,4 +1,4 @@
-##Main Docker File for FastAPI APP
+##Docker File for the normal user client
 #https://fastapi.tiangolo.com/deployment/docker/#build-the-docker-image
 FROM python:3.9
 WORKDIR /code
@@ -12,4 +12,6 @@ COPY . /code/app
 #COPY ./docker_3_test.py /code/
 #COPY ./utils.py /code/
 EXPOSE 8000
-CMD ["fastapi", "run", "app/main.py","--host" , "0.0.0.0", "--port", "8000"]
+##RUN the NORMAL User client
+CMD ["python", "/code/docker_1_test.py"]
+

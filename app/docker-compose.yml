@@ -1,0 +1,35 @@
+#https://docs.docker.com/compose/intro/compose-application-model/
+services:
+  fast_api:
+    build:
+      context: .
+      dockerfile: Dockerfile_app
+    container_name: fast_api_container
+    ports:
+      - "8000:8000"
+    networks:
+      - test_network
+
+  docker_1_test:
+    build:
+      context: .
+      dockerfile: Dockerfile_docker_1
+    container_name: docker_1_test_container
+    networks:
+      - test_network
+    depends_on:
+      - fast_api
+
+  docker_2_test:
+    build:
+      context: .
+      dockerfile: Dockerfile_docker_2
+    container_name: docker_2_test_container
+    networks:
+      - test_network
+    depends_on:
+      - fast_api
+
+networks:
+  test_network:
+
