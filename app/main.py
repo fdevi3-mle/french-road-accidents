@@ -7,8 +7,6 @@ import secrets
 import sys
 from contextlib import asynccontextmanager
 from typing import Annotated, Literal
-
-import h3
 import joblib
 import pandas as pd
 from comet_ml.api import API
@@ -216,7 +214,7 @@ async def forecast_accidents(request: Annotated[ForecastRequest, Query()]):
 @app.post("/predict/severity", tags=['production'])
 async def predict_severity(request: Annotated[ClassifierRequest, Query()]):
     try:
-        hex_3 = h3.latlng_to_cell(request.latitude, request.longitude, H3_RESOLUTION)
+        #hex_3 = h3.latlng_to_cell(request.latitude, request.longitude, H3_RESOLUTION)
         # features = [[request.vehicle_category, request.obstacle_mobile, request.impact_point, request.action,
         #              request.safety_equipment, request.road_surface, request.lum, request.weather,
         #              request.collision_type, request.speed_limit, request.accident_hex_count]]
