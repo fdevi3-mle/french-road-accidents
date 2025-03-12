@@ -10,6 +10,7 @@ from src.common_monolith import data_loader_common, data_validator, log_dataset,
     save_model
 from src.forecast_monolith import create_time_series_date, train_arima, predict_plot, evidently_forecaster_monitoring, \
     comet_ml_forecaster
+from src.utils import ARIMA_NAME, GBC_NAME
 
 ##Activate logger and client
 logger = logging.getLogger(__name__)
@@ -47,7 +48,7 @@ def mega_pipeline():
     gbc_model = gradboost_classifier(X_train, X_test, y_train, y_test)
 
     logger.info(f"Saving the model")
-    _gbc_name = "GradientBoostingClassifier"
+    _gbc_name = GBC_NAME
     _gbc_filepath = save_model(gbc_model,_gbc_name)
 
     logger.info("Starting the Comet ML Logging")
@@ -63,7 +64,7 @@ def mega_pipeline():
     arima_model, name = predict_plot(arima_model,forecast_test)
 
     logger.info(f"Saving the model")
-    _arima_name = "ARIMA"
+    _arima_name = ARIMA_NAME
     _arima_filepath = save_model(arima_model, _arima_name)
 
     logger.info(f"Evidently Classifier")
@@ -74,6 +75,10 @@ def mega_pipeline():
 
     logger.info("Comet Ml Forcasting Logging")
     comet_ml_forecaster(forecast_test,arima_model,_arima_filepath)
+
+def hello():
+    ''' DONT USE THIS.Just a stupid DataScientest scam requirement'''
+    mega_pipeline()
 
 if __name__ == "__main__":
     mega_pipeline()
