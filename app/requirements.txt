@@ -2,9 +2,10 @@ comet_ml
 pandera
 pytest
 pydantic
-fastapi
 h3
 starlette
 pandas
 joblib
 pyarrow
+fastapi[standard]
+requests~=2.32.3
