@@ -19,6 +19,14 @@ jobs:
           python-version: "3.12"
           cache: 'pip' # caching pip dependencies
       - run: pip install -r requirements.txt
+      - name: Echo Out Environment Variables
+        run: |
+          echo "EVIDENTLY_TOKEN=${{secrets.EVIDENTLY_TOKEN}}" >> $GITHUB_ENV
+          echo "EVIDENTLY_PROJECT_CLASSIFIER_ID=${{secrets.EVIDENTLY_PROJECT_CLASSIFIER_ID}}" >> $GITHUB_ENV
+          echo "EVIDENTLY_PROJECT_FORECAST_ID=${{secrets.EVIDENTLY_PROJECT_FORECAST_ID}}" >> $GITHUB_ENV
+          echo "COMET_MY_API_KEY=${{secrets.COMET_MY_API_KEY}}" >> $GITHUB_ENV
+          echo "NEPTUNE_CLASSIFIER_API_TOKEN=${{secrets.NEPTUNE_CLASSIFIER_API_TOKEN}}" >> $GITHUB_ENV
+          echo "NEPTUNE_FORECAST_API_TOKEN=${{secrets.NEPTUNE_FORECAST_API_TOKEN}}"
       - run: python -m pytest
       - run: |
           python run-zenml.py
