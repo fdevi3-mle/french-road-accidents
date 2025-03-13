@@ -20,9 +20,8 @@ os.environ['CUDA_VISIBLE_DEVICES'] = '-1'
 
 # Zenml Client
 client = Client()
-Client().activate_stack(
-    "default"
-)
+Client().activate_stack("default")
+
 
 @pipeline(enable_cache=True)
 def mega_pipeline():
@@ -49,10 +48,10 @@ def mega_pipeline():
 
     logger.info(f"Saving the model")
     _gbc_name = GBC_NAME
-    _gbc_filepath = save_model(gbc_model,_gbc_name)
+    _gbc_filepath = save_model(gbc_model, _gbc_name)
 
     logger.info("Starting the Comet ML Logging")
-    comet_ml_classifier(X_test,y_test,gbc_model,_gbc_filepath)
+    comet_ml_classifier(X_test, y_test, gbc_model, _gbc_filepath)
 
     logger.info(f"Starting the Time series step")
     ts = create_time_series_date(data_processed)
@@ -61,7 +60,7 @@ def mega_pipeline():
     arima_model, forecast_train, forecast_test = train_arima(ts)
 
     logger.info(f"Plotting the time series predictions")
-    arima_model, name = predict_plot(arima_model,forecast_test)
+    arima_model, name = predict_plot(arima_model, forecast_test)
 
     logger.info(f"Saving the model")
     _arima_name = ARIMA_NAME
@@ -71,19 +70,22 @@ def mega_pipeline():
     evidently_classifier_monitoring(X_train, X_test, y_train, y_test, gbc_model)
 
     logger.info("Evidently Forecasting")
-    evidently_forecaster_monitoring(valid =forecast_test,model=arima_model)
+    evidently_forecaster_monitoring(valid=forecast_test, model=arima_model)
 
     logger.info("Comet Ml Forcasting Logging")
-    comet_ml_forecaster(forecast_test,arima_model,_arima_filepath)
+    comet_ml_forecaster(forecast_test, arima_model, _arima_filepath)
 
-def hello():
+
+def _dont_use_for_test_only():
     ''' DONT USE THIS.Just a stupid DataScientest scam requirement'''
+    ## basically since we need too retrain ,I need to call teh pipeline again. and one way to call it is via load module which
+    ## is inherently dumb and unsafe. A more production way is assuming that this is on a server , a listener that triggers an event of retraining
+    # where the pipeline trigger shown below has status updates to avoid simulatenous pipeline triggers or seperate workers than can seperately trigger pipelines.
     mega_pipeline()
+
 
 if __name__ == "__main__":
     mega_pipeline()
-
-
 
 ### DEAD CODE
 # @pipeline(enable_cache=False)  # This function combines steps together
