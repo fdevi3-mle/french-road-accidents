@@ -1,46 +1,74 @@
-import json
 import os.path
 from datetime import datetime
-from enum import Enum
 from pathlib import Path
 
 import pandas as pd
+from dotenv import load_dotenv
 
+############ LOAD DOTENV ############
+# Load environment variables from the .env file
+load_dotenv()
+
+# Evidently
+EVIDENTLY_TOKEN = os.getenv("EVIDENTLY_TOKEN")
+EVIDENTLY_PROJECT_CLASSIFIER_ID = os.getenv("EVIDENTLY_PROJECT_CLASSIFIER_ID")
+EVIDENTLY_PROJECT_FORECAST_ID = os.getenv("EVIDENTLY_PROJECT_FORECAST_ID")
+
+######## COMET ML
+# Common
+COMET_WORKSPACE = os.getenv("COMET_WORKSPACE")
+COMET_MY_API_KEY = os.getenv("COMET_MY_API_KEY")
+
+# CLASSIFIER
+COMET_CLASSIFIER_PROJECT_NAME = os.getenv("COMET_CLASSIFIER_PROJECT_NAME")
+
+# Comet Data
+COMET_DATASET_PROJECT_NAME = os.getenv("COMET_DATASET_PROJECT_NAME")
+
+# Comet Forecaster
+COMET_FORECAST_PROJECT_NAME = os.getenv("COMET_FORECAST_PROJECT_NAME")
+
+##########NEPTUNE AI
+# CLASSIFIER
+NEPTUNE_CLASSIFIER_PROJECT = os.getenv("NEPTUNE_CLASSIFIER_PROJECT")
+NEPTUNE_CLASSIFIER_API_TOKEN = os.getenv("NEPTUNE_CLASSIFIER_API_TOKEN")
+
+##fORECASTER
+NEPTUNE_FORECAST_PROJECT = os.getenv("NEPTUNE_FORECAST_PROJECT")
+NEPTUNE_FORECAST_API_TOKEN = os.getenv("NEPTUNE_FORECAST_API_TOKEN")
 
 ##Constants & FILEPATHS
-CURRENT_PATH = os.path.dirname(os.path.abspath(__file__)) ## src
+CURRENT_PATH = os.path.dirname(os.path.abspath(__file__))  ## src
 ROOT_PATH = os.path.dirname(CURRENT_PATH)
-DATA_PATH =  os.path.join(ROOT_PATH, 'data')
-MODEL_PATH =  os.path.join(ROOT_PATH,'models')
+DATA_PATH = os.path.join(ROOT_PATH, 'data')
+MODEL_PATH = os.path.join(ROOT_PATH, 'models')
 NOTEBOOK_PATH = os.path.join(ROOT_PATH, 'notebooks')
-SRC_PATH = os.path.join(ROOT_PATH,'src')
-
+SRC_PATH = os.path.join(ROOT_PATH, 'src')
 
 ##DATA FILE
-INPUT_PATH = os.path.join(DATA_PATH,'input')
-INPUT_PARQUET = os.path.join(INPUT_PATH,'merged.parquet')
-PARQUET_2019 = os.path.join(INPUT_PATH,'2019.parquet')
-PARQUET_2020 = os.path.join(INPUT_PATH,'2020.parquet')
-PARQUET_2021 = os.path.join(INPUT_PATH,'2021.parquet')
-PARQUET_2022 = os.path.join(INPUT_PATH,'2022.parquet')
-PARQUET_2023 = os.path.join(INPUT_PATH,'2023.parquet')
+INPUT_PATH = os.path.join(DATA_PATH, 'input')
+INPUT_PARQUET = os.path.join(INPUT_PATH, 'merged.parquet')
+PARQUET_2019 = os.path.join(INPUT_PATH, '2019.parquet')
+PARQUET_2020 = os.path.join(INPUT_PATH, '2020.parquet')
+PARQUET_2021 = os.path.join(INPUT_PATH, '2021.parquet')
+PARQUET_2022 = os.path.join(INPUT_PATH, '2022.parquet')
+PARQUET_2023 = os.path.join(INPUT_PATH, '2023.parquet')
 
 ##MACHINE lEARNING
 GBC_NAME = "GradientBoostingClassifier"
 ARIMA_NAME = "ARIMA"
 
 ##BAD IDEA
-MAPBOX_TOKEN ="pk.eyJ1IjoiZnJhbi10ZXN0LTMiLCJhIjoiY202eHRzOGo2MTFqZzJzczZhb3VtNHpteCJ9.vW4EOk0IJTaR-pZ0fATSuQ"
+MAPBOX_TOKEN = "pk.eyJ1IjoiZnJhbi10ZXN0LTMiLCJhIjoiY202eHRzOGo2MTFqZzJzczZhb3VtNHpteCJ9.vW4EOk0IJTaR-pZ0fATSuQ"
 
-OUTPUT_PATH = os.path.join(DATA_PATH,'output')
+OUTPUT_PATH = os.path.join(DATA_PATH, 'output')
 # REPORT path
-REPORT_PATH= os.path.join(ROOT_PATH, 'report')
-FIGURE_PATH = os.path.join(REPORT_PATH,'figures')
+REPORT_PATH = os.path.join(ROOT_PATH, 'report')
+FIGURE_PATH = os.path.join(REPORT_PATH, 'figures')
 LOG_PATH = os.path.join(ROOT_PATH, 'logs')
 
-
 ##Figures
-FIGURE_1 = os.path.join(FIGURE_PATH,'fig1.png')
+FIGURE_1 = os.path.join(FIGURE_PATH, 'fig1.png')
 FIGURE_2 = os.path.join(FIGURE_PATH, 'fig2.png')
 FIGURE_3 = os.path.join(FIGURE_PATH, 'fig3.png')
 FIGURE_4 = os.path.join(FIGURE_PATH, 'fig4.png')
@@ -56,12 +84,11 @@ FIGURE_13 = os.path.join(FIGURE_PATH, 'fig13.png')
 FIGURE_14 = os.path.join(FIGURE_PATH, 'fig14.png')
 FIGURE_15 = os.path.join(FIGURE_PATH, 'fig15.png')
 
-CSV_EXTENSION=  '.csv'
+CSV_EXTENSION = '.csv'
 PARQUET_EXTENSION = '.parquet'
 HTML = '.html'
 PNG = '.png'
 JPG = '.jpg'
-
 
 ##LAT & LONG : BORDERS
 LAT_MIN = 40.0
@@ -77,24 +104,19 @@ H3_RESOLUTION = 4
 ##DATE
 TRAIN_DATE_LIMIT = pd.Timestamp('2023-06-30')
 
-##Evidently token
-EVIDENTLY_TOKEN ='dG9rbgGWQ7MCO/9K/IVoZJKowyjL96GA7s6s16l2jo6dkP0KVgBQUEdNKOAKGlKa8DsGSPApb1hmwpWQrf8JXeMd+4uEjtmRJQPQwLjedih2AwlueVDRla1sC62ngsXfsIjvtddR/xDp0F40OGt8/0LAoxuR8sQp5WV2'
-EVIDENTLY_PROJECT_CLASSIFIER_ID = "01952f3b-a187-7bd5-8ea0-324f868910d2"
-EVIDENTLY_PROJECT_FORECAST_ID = "019580e7-8e7f-7b2b-8683-d35e31f9fe10"
-
 VERSION = '0.0.0'
 import logging
 
 
 class ExtensionMethods:
     @staticmethod
-    def generate_filename(filename=None,extension=None):
+    def generate_filename(filename=None, extension=None):
         current_datetime = datetime.now()
         f = current_datetime.strftime("%Y_%m_%d_%H%M")
         if (filename is None) or (extension is None):
             return str(f)
         else:
-            stitched_f = str(filename)+"_"+str(f)+"."+str(extension)
+            stitched_f = str(filename) + "_" + str(f) + "." + str(extension)
             return str(stitched_f)
 
     @staticmethod
@@ -104,7 +126,7 @@ class ExtensionMethods:
         return Path(filename).stem
 
     @staticmethod
-    def generate_filename_only(filename=None,extension=None):
+    def generate_filename_only(filename=None, extension=None):
         if (filename is None) or (extension is None):
             return str("Dummy.txt")
         else:
@@ -112,26 +134,26 @@ class ExtensionMethods:
             return str(stitched_f)
 
     @staticmethod
-    def get_all_files(dirpath=DATA_PATH,extension='.parquet'):
-        _all_files ={}
+    def get_all_files(dirpath=DATA_PATH, extension='.parquet'):
+        _all_files = {}
         file_list = os.listdir(dirpath)
         for file in file_list:
-            filepath = os.path.join(dirpath,file)
+            filepath = os.path.join(dirpath, file)
             if file.endswith(extension):
                 _all_files[file] = filepath
 
         return _all_files
 
     @staticmethod
-    def create_parquet(data=None,filename='',filepath=OUTPUT_PATH):
+    def create_parquet(data=None, filename='', filepath=OUTPUT_PATH):
         if data is None:
             raise ValueError("Data can't be None for Parquet Creation")
-        obj_cols = data.select_dtypes(include=['object','categorical']).columns
+        obj_cols = data.select_dtypes(include=['object', 'categorical']).columns
         for col in obj_cols:
             data[col] = data[col].astype(str)
         if not os.path.exists(filepath):
-            os.makedirs(filepath) ## a bit of cheating
-        _full_path = os.path.join(filepath,filename)
+            os.makedirs(filepath)  ## a bit of cheating
+        _full_path = os.path.join(filepath, filename)
         data.to_parquet(filepath, engine='pyarrow', compression="zstd", compression_level=10, index=False)
         print(f"\n Finished Saving parquet to: {filepath}")
 
@@ -139,11 +161,10 @@ class ExtensionMethods:
 ## Lets test the normal logger instead of the zenml one
 def generate_logger(logpath=LOG_PATH):
     logger = logging.getLogger(__name__)
-    filename= ExtensionMethods.generate_filename('logger', 'log')
+    filename = ExtensionMethods.generate_filename('logger', 'log')
     filepath = os.path.join(logpath, filename)
     logging.basicConfig(filename=filepath, encoding='utf-8', level=logging.DEBUG)
     logger.info("Hi")
-
 
 
 if __name__ == "__main__":
@@ -153,6 +174,6 @@ if __name__ == "__main__":
     print(f"VERSION: {VERSION}")
     print(f"SRC_PATH: {SRC_PATH}")
     print(f"OUTPUT_PATH: {OUTPUT_PATH}")
-    print(f"FileName generated {ExtensionMethods.generate_filename("test",'jpg')}")
+    print(f"FileName generated {ExtensionMethods.generate_filename("test", 'jpg')}")
     print(f"FileName generated {ExtensionMethods.get_all_files(INPUT_PATH)}")
     generate_logger(LOG_PATH)
