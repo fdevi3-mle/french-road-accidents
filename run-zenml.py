@@ -10,7 +10,8 @@ from src.common_monolith import data_loader_common, data_validator, log_dataset,
     save_model
 from src.forecast_monolith import create_time_series_date, train_arima, predict_plot, evidently_forecaster_monitoring, \
     comet_ml_forecaster
-from src.utils import ARIMA_NAME, GBC_NAME
+from src.utils import ARIMA_NAME, GBC_NAME, NEPTUNE_FORECAST_PROJECT, NEPTUNE_CLASSIFIER_PROJECT, \
+    COMET_FORECAST_PROJECT_NAME, COMET_WORKSPACE, EVIDENTLY_PROJECT_FORECAST_ID
 
 ##Activate logger and client
 logger = logging.getLogger(__name__)
@@ -84,8 +85,15 @@ def _dont_use_for_test_only():
     mega_pipeline()
 
 
+def print_stuff():
+    print(f"NEPTUNE_FORECAST_PROJECT : {NEPTUNE_FORECAST_PROJECT}")
+    print(f"COMET_FORECAST_PROJECT_NAME  : {COMET_FORECAST_PROJECT_NAME}")
+    print(f"COMET_WORKSPACE   : {COMET_WORKSPACE}")
+    print(f"EVIDENTLY_PROJECT_FORECAST_ID   : {EVIDENTLY_PROJECT_FORECAST_ID}")
+
+
 if __name__ == "__main__":
-    mega_pipeline()
+    print_stuff()
 
 ### DEAD CODE
 # @pipeline(enable_cache=False)  # This function combines steps together
