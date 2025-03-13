@@ -93,7 +93,7 @@ def print_stuff():
 
 
 if __name__ == "__main__":
-    print_stuff()
+    mega_pipeline()
 
 ### DEAD CODE
 # @pipeline(enable_cache=False)  # This function combines steps together
