@@ -2,7 +2,7 @@ name: Test-Fixes-Workflow
 
 on:
   push:
-    branches: ["tiny-fixes"]
+    branches: ["never-ever"]
 jobs:
   develop:
     name: Develop ZenML JOB
@@ -20,7 +20,7 @@ jobs:
           cache: 'pip' # caching pip dependencies
       - run: pip install -r requirements.txt
 
-      - name: Make .env File
+      - name: Echo Out Environment Variables
         run: |
           echo "NEPTUNE_FORECAST_PROJECT=${{vars.NEPTUNE_FORECAST_PROJECT}}" >> $GITHUB_ENV
           echo "EVIDENTLY_PROJECT_FORECAST_ID=${{secrets.EVIDENTLY_PROJECT_FORECAST_ID}}" >> $GITHUB_ENV
