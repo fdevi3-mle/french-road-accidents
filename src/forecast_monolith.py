@@ -1,26 +1,16 @@
 ## COMET ML
+from typing import Tuple, Annotated
+
 from comet_ml import start
-from comet_ml.integration.sklearn import log_model
-
-# comet_forecast_experiment = start(
-#   api_key="Xh1kXXM0IIPgqwAP3wTyChS0R",
-#   project_name="french-forecaster",
-#   workspace="fdevi3"
-# )
-#
-
-
-from typing import Tuple,Annotated
-import joblib
 from pmdarima import auto_arima
 # GBC
 from sklearn.metrics import mean_absolute_percentage_error, make_scorer
 from zenml import step
 from zenml.logger import get_logger
 
-from src.franums import RoadAccidentEnum
-from src.utils import INPUT_PARQUET, LAT_MIN, LAT_MAX, LONG_MIN, LONG_MAX, TRAIN_DATE_LIMIT, ExtensionMethods, \
-    REPORT_PATH, FIGURE_PATH, MODEL_PATH, EVIDENTLY_TOKEN, EVIDENTLY_PROJECT_FORECAST_ID
+from src.utils import TRAIN_DATE_LIMIT, ExtensionMethods, REPORT_PATH, FIGURE_PATH, EVIDENTLY_TOKEN, \
+    EVIDENTLY_PROJECT_FORECAST_ID, NEPTUNE_FORECAST_PROJECT, NEPTUNE_FORECAST_API_TOKEN, COMET_MY_API_KEY, \
+    COMET_FORECAST_PROJECT_NAME, COMET_WORKSPACE
 
 ##setup the logger
 logger = get_logger(__name__)
@@ -49,7 +39,7 @@ os.environ['CUDA_VISIBLE_DEVICES'] = '-1'
 ##
 from pmdarima import ARIMA
 
-#evidenly
+# evidenly
 from evidently.future.datasets import Dataset, Regression
 from evidently.future.datasets import DataDefinition
 
@@ -59,23 +49,14 @@ from evidently.ui.workspace.cloud import CloudWorkspace
 
 
 @step
-def create_time_series_date(dataset)->Annotated[pd.DataFrame,"TimeSeriesDataFrame"]:
+def create_time_series_date(dataset) -> Annotated[pd.DataFrame, "TimeSeriesDataFrame"]:
     columns_to_keep = ['date', 'accident_id', 'road_surface', 'weather', 'lum']
     filtered_columns = [col for col in columns_to_keep if col in dataset.columns]
 
     ## groups the accidents and selects some features which I want to use as regressors depending on hr or daily check
-    df = (
-        dataset[filtered_columns]
-        .groupby('date')
-        .agg({
-            'accident_id': 'count',
-            'road_surface': 'max',
-            'lum': 'mean',
-            'weather': 'max',
-        })
-        .rename(columns={'accident_id': 'accident_count'})
-        .reset_index()
-    )
+    df = (dataset[filtered_columns].groupby('date').agg(
+        {'accident_id': 'count', 'road_surface': 'max', 'lum': 'mean', 'weather': 'max', }).rename(
+        columns={'accident_id': 'accident_count'}).reset_index())
 
     ##rename as prophet and other time series analysers like it as ds and y
     df = df.rename(columns={'accident_count': 'y', 'date': 'ds'})
@@ -124,7 +105,7 @@ def time_series_analyser(df):
 
 
 @step
-def train_arima(df) -> Tuple[Annotated[ARIMA,"ARIMA"], pd.DataFrame, pd.DataFrame]:
+def train_arima(df) -> Tuple[Annotated[ARIMA, "ARIMA"], pd.DataFrame, pd.DataFrame]:
     '''Check the best arima model to predict& forecast'''
     df['ds'] = pd.to_datetime(df['ds'], format='%Y-%m-%d', errors='coerce')
     df = df[['ds', 'y']]
@@ -137,14 +118,9 @@ def train_arima(df) -> Tuple[Annotated[ARIMA,"ARIMA"], pd.DataFrame, pd.DataFram
 
     # scorer
     mape_scorer = make_scorer(mean_absolute_percentage_error, greater_is_better=False)
-    model_arima = auto_arima(train[['y']], start_p=1, start_q=1, test='adf',
-                             seasonal=True, m=12, seasonal_test='ocsb',
-                             d=None, D=1,
-                             trace=True,
-                             error_action='ignore',
-                             suppress_warnings=True,
-                             stepwise=True,
-                             maxiter=1,##change higher for real
+    model_arima = auto_arima(train[['y']], start_p=1, start_q=1, test='adf', seasonal=True, m=12, seasonal_test='ocsb',
+                             d=None, D=1, trace=True, error_action='ignore', suppress_warnings=True, stepwise=True,
+                             maxiter=1,  ##change higher for real
                              start_P=0, n_jobs=-1, random_state=42, scoring=mape_scorer)
 
     return model_arima, train, val
@@ -153,10 +129,7 @@ def train_arima(df) -> Tuple[Annotated[ARIMA,"ARIMA"], pd.DataFrame, pd.DataFram
 @step
 def predict_plot(model, test) -> Tuple[ARIMA, str]:
     ##neptune
-    run = neptune.init_run(
-        project="fdevi3-time/RoadAcccidentForecast",
-        api_token="eyJhcGlfYWRkcmVzcyI6Imh0dHBzOi8vYXBwLm5lcHR1bmUuYWkiLCJhcGlfdXJsIjoiaHR0cHM6Ly9hcHAubmVwdHVuZS5haSIsImFwaV9rZXkiOiJkZTIwYzE5My1mYTY1LTQ4OTQtYjRjYy0yNDMwNzliOTQzODAifQ==",
-    )  # your credentials
+    run = neptune.init_run(project=NEPTUNE_FORECAST_PROJECT, api_token=NEPTUNE_FORECAST_API_TOKEN, )  # your credentials
 
     forecast = model.predict(n_periods=len(test))
     mape_score = mean_absolute_percentage_error(test['y'], forecast)
@@ -205,7 +178,7 @@ def predict_plot(model, test) -> Tuple[ARIMA, str]:
 def evidently_forecaster_monitoring(valid, model):
     evi_ws = CloudWorkspace(token=EVIDENTLY_TOKEN, url="https://app.evidently.cloud")
     project = evi_ws.get_project(EVIDENTLY_PROJECT_FORECAST_ID)
-    cols = ['ds','y']
+    cols = ['ds', 'y']
     valid = valid[cols]
 
     ## Regression test stuff for the future forecast
@@ -213,30 +186,19 @@ def evidently_forecaster_monitoring(valid, model):
     valid['prediction'] = model.predict(n_periods=len(valid))
     valid['prediction'] = valid['prediction'].astype(float)
 
-    definition = DataDefinition(
-        numerical_columns=['y','prediction'],
-        datetime_columns=['ds'],
-        timestamp='ds',
-        regression=[Regression(target='y', prediction='prediction')]
-    )
+    definition = DataDefinition(numerical_columns=['y', 'prediction'], datetime_columns=['ds'], timestamp='ds',
+                                regression=[Regression(target='y', prediction='prediction')])
 
-    valid_data = Dataset.from_pandas(valid,
-        data_definition=definition
-    )
-    report = Report([
-        RegressionPreset()
-    ])
+    valid_data = Dataset.from_pandas(valid, data_definition=definition)
+    report = Report([RegressionPreset()])
     _eval = report.run(valid_data)
     evi_ws.add_run(project.id, _eval)
 
 
 @step
-def comet_ml_forecaster(valid,arima_model,filepath=None):
-    comet_forecast_experiment = start(
-        api_key="Xh1kXXM0IIPgqwAP3wTyChS0R",
-        project_name="french-forecaster",
-        workspace="fdevi3"
-    )
+def comet_ml_forecaster(valid, arima_model, filepath=None):
+    comet_forecast_experiment = start(api_key=COMET_MY_API_KEY, project_name=COMET_FORECAST_PROJECT_NAME,
+                                      workspace=COMET_WORKSPACE)
     cols = ['ds', 'y']
     valid = valid[cols]
 
@@ -247,12 +209,11 @@ def comet_ml_forecaster(valid,arima_model,filepath=None):
     mape_score = mean_absolute_percentage_error(valid['y'], forecast)
     print(f"MAPE for time series score: {mape_score}")
 
-    comet_forecast_experiment.log_metric("mape_score",mape_score)
+    comet_forecast_experiment.log_metric("mape_score", mape_score)
 
     if not filepath or not os.path.isfile(filepath):
         raise FileNotFoundError("Where ARIMA File")
     comet_forecast_experiment.log_model("Forecast-Arima-Model", filepath)
-
 
     # register model
     comet_forecast_experiment.register_model(model_name="Forecast-Arima-Model")
