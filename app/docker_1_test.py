@@ -7,7 +7,7 @@ import requests
 
 ###URLS
 ##TODO CHANGE TO base_url="http://fast_api:8000" for production
-base_url = "http://127.0.0.1:8000"
+base_url = "http://fast_api:8000"
 hello_url = base_url + "/"
 health_url = base_url + "/health/status"
 query_forecast_url = base_url + "/test/forecaster_query"

@@ -1,0 +1,15 @@
+comet_ml~=3.49.4
+pytest
+pandas~=2.2.3
+joblib~=1.4.2
+requests~=2.32.3
+pmdarima~=2.0.4
+scikit-learn~=1.4.0
+numpy~=1.26.4
+scipy~=1.11.4
+zenml~=0.75.0
+fastapi[standard]
+pydantic
+starlette
+pyarrow
+statsmodels~=0.14.0
