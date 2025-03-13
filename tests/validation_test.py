@@ -1,13 +1,16 @@
-import pytest
 import pandas as pd
 import pandera as pa
-from pandera import Column
+import pytest
 from pandas import Int32Dtype
-from unittest.mock import patch
+from pandera import Column
 
 from src.franums import RoadAccidentEnum
 from src.utils import INPUT_PARQUET
+
+
 ## ALL this is bullshit but since the scam of an organization Datascientest wants it , it is here.
+## One doesnt need this as the data is validated against the enum when loaded and this is just overkill
+## In real life, the enum would be overkill and just a schema would be used.
 ## Fiztures ##
 @pytest.fixture
 def synthetic_good_data():
@@ -15,7 +18,7 @@ def synthetic_good_data():
     _good_data = {}
     for index, value in mega_dic.items():
         if mega_dic[index][1]:
-            _good_data[index] = [list(value[0].keys())[1]] ## take the first key
+            _good_data[index] = [list(value[0].keys())[1]]  ## take the first key
         else:
             if index == 'vehicle_id':
                 _good_data[index] = ["202020202020"]
@@ -24,11 +27,11 @@ def synthetic_good_data():
             if index == 'age':
                 _good_data[index] = [45]
             if index == 'datetime':
-                _good_data[index] = [pd.to_datetime(1490195805, unit='s')] ##just took it from pd.todatetime example
+                _good_data[index] = [pd.to_datetime(1490195805, unit='s')]  ##just took it from pd.todatetime example
             if (index == 'lat') or (index == 'long'):
                 _good_data[index] = [4.20]
             if index == 'h3':
-                _good_data[index] = ['8928308280fffff'] ## took a default value from h3
+                _good_data[index] = ['8928308280fffff']  ## took a default value from h3
     return pd.DataFrame(_good_data)
 
 
@@ -38,7 +41,7 @@ def synthetic_bad_data():
     _bad_data = {}
     for index, value in mega_dic.items():
         if mega_dic[index][1]:
-            _bad_data[index] = [list(value[0].keys())[1]] ## take the first key
+            _bad_data[index] = [list(value[0].keys())[1]]  ## take the first key
         else:
             if index == 'vehicle_id':
                 _bad_data[index] = ["202020202020"]
@@ -47,13 +50,12 @@ def synthetic_bad_data():
             if index == 'age':
                 _bad_data[index] = ["cccc"]
             if index == 'datetime':
-                _bad_data[index] = [pd.to_datetime(1490195805, unit='s')] ##just took it from pd.todatetime example
+                _bad_data[index] = [pd.to_datetime(1490195805, unit='s')]  ##just took it from pd.todatetime example
             if (index == 'lat') or (index == 'long'):
                 _bad_data[index] = ["xxx"]
             if index == 'h3':
-                _bad_data[index] = ['8928308280fffff'] ## took a default value from h3
+                _bad_data[index] = ['8928308280fffff']  ## took a default value from h3
     return pd.DataFrame(_bad_data)
-
 
 
 def test_validation_synthetic_good_data(synthetic_good_data):
@@ -86,7 +88,8 @@ def test_validation_synthetic_good_data(synthetic_good_data):
         print(exc.failure_cases)
         print("\nDataFrame object that failed validation:")
         print(exc.data)
-        assert False ## If it comes here then its false
+        assert False  ## If it comes here then its false
+
 
 def test_validation_synthetic_bad_data(synthetic_bad_data):
     data = synthetic_bad_data
@@ -112,15 +115,13 @@ def test_validation_synthetic_bad_data(synthetic_bad_data):
     try:
         schema.validate(data, lazy=True)
         print("All validated")
-        assert False ## I should not pass
+        assert False  ## I should not pass
     except pa.errors.SchemaErrors as exc:
         print("Schema errors and failure cases:")
         print(exc.failure_cases)
         print("\nDataFrame object that failed validation:")
         print(exc.data)
-        assert True ## Lol, I failed
-
-
+        assert True  ## Lol, I failed
 
 
 def test_data_validation_parquet(filepath=INPUT_PARQUET):
@@ -138,15 +139,14 @@ def test_data_validation_parquet(filepath=INPUT_PARQUET):
         else:
             if index == 'vehicle_id':
                 columns[index] = Column(str)
-            if (index == 'dob') or (index=='age'):
+            if (index == 'dob') or (index == 'age'):
                 columns[index] = Column(Int32Dtype())
             if index == 'datetime':
                 columns[index] = Column(pa.DateTime)
-            if (index=='lat') or (index=='long'):
+            if (index == 'lat') or (index == 'long'):
                 columns[index] = Column(float)
             if index == 'h3':
                 columns[index] = Column(str)
-
 
     schema = pa.DataFrameSchema(columns=columns)
     print(schema)
@@ -160,5 +160,3 @@ def test_data_validation_parquet(filepath=INPUT_PARQUET):
         print("\nDataFrame object that failed validation:")
         print(exc.data)
         assert False
-
-

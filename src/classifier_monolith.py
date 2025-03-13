@@ -2,7 +2,6 @@
 from typing import Tuple, Annotated
 
 from comet_ml import start
-from comet_ml.integration.sklearn import log_model
 from imblearn.over_sampling import SMOTE
 from sklearn.base import ClassifierMixin
 from sklearn.ensemble import GradientBoostingClassifier
@@ -14,8 +13,9 @@ from sklearn.preprocessing import StandardScaler
 from zenml import step, ArtifactConfig
 from zenml.logger import get_logger
 
-from src.utils import ExtensionMethods, \
-    REPORT_PATH, EVIDENTLY_TOKEN, EVIDENTLY_PROJECT_CLASSIFIER_ID, MODEL_PATH
+from src.utils import ExtensionMethods, REPORT_PATH, EVIDENTLY_TOKEN, EVIDENTLY_PROJECT_CLASSIFIER_ID, \
+    COMET_CLASSIFIER_PROJECT_NAME, COMET_WORKSPACE, NEPTUNE_CLASSIFIER_API_TOKEN, NEPTUNE_CLASSIFIER_PROJECT, \
+    COMET_MY_API_KEY
 
 ##setup the logger
 logger = get_logger(__name__)
@@ -23,7 +23,6 @@ logger = get_logger(__name__)
 # Neptune AI
 import neptune
 import neptune.integrations.sklearn as npt_utils
-
 
 #  Warnings
 import warnings
@@ -41,7 +40,7 @@ import pandas as pd
 os.environ['CUDA_VISIBLE_DEVICES'] = '-1'
 ##
 
-#evidenly
+# evidenly
 from evidently.future.datasets import Dataset, BinaryClassification
 from evidently.future.datasets import DataDefinition
 
@@ -50,26 +49,25 @@ from evidently.future.presets import *
 from evidently.ui.workspace.cloud import CloudWorkspace
 
 
-#region GBC
+# region GBC
 @step
-def prepare_train_test_split(data)->Tuple[Annotated[pd.DataFrame,"X_train"], Annotated[pd.DataFrame,"X_test"],Annotated[pd.Series,"y_train"],Annotated[pd.Series,"y_test"]]:
-    features = ['vehicle_category', 'obstacle_mobile', 'impact_point', 'action', 'safety_equipment',
-                'road_surface', 'speed_limit', 'lum', 'weather', 'collision_type',
-                'accident_hex_count']
+def prepare_train_test_split(data) -> Tuple[
+    Annotated[pd.DataFrame, "X_train"], Annotated[pd.DataFrame, "X_test"], Annotated[pd.Series, "y_train"], Annotated[
+        pd.Series, "y_test"]]:
+    features = ['vehicle_category', 'obstacle_mobile', 'impact_point', 'action', 'safety_equipment', 'road_surface',
+                'speed_limit', 'lum', 'weather', 'collision_type', 'accident_hex_count']
     target = 'severity'
-    #seperate the minor and mjor
+    # seperate the minor and mjor
     mask = data[target] > 1  # get rid of no injury
     data = data[mask]
     X = data[features]
     y = data[target]
-    y = y.map(lambda r: 1 if r >= 3 else 0) # Major {Major+Killed}
+    y = y.map(lambda r: 1 if r >= 3 else 0)  # Major {Major+Killed}
 
-    ordinal_features = ['vehicle_category', 'obstacle_mobile', 'impact_point', 'action',
-                        'safety_equipment', 'road_surface',  'lum', 'weather',
-                        'collision_type']
+    ordinal_features = ['vehicle_category', 'obstacle_mobile', 'impact_point', 'action', 'safety_equipment',
+                        'road_surface', 'lum', 'weather', 'collision_type']
     for col in ordinal_features:
         X[col] = X[col].replace(-1, 0).astype(int)
-
 
     ##Smote for minority class
     smote = SMOTE()
@@ -84,24 +82,20 @@ def prepare_train_test_split(data)->Tuple[Annotated[pd.DataFrame,"X_train"], Ann
 
     return X_train, X_test, y_train, y_test
 
-@step
-def gradboost_classifier(X_train, X_test, y_train, y_test)->Annotated[ClassifierMixin,ArtifactConfig(name="GradientBoostingClassifier",tags=['classifier','gbc'])]:
 
-    #setup neptune
-    run = neptune.init_run(
-        project="France-Road-Accidents-Test/SeverityClassifier",
-        api_token="eyJhcGlfYWRkcmVzcyI6Imh0dHBzOi8vYXBwLm5lcHR1bmUuYWkiLCJhcGlfdXJsIjoiaHR0cHM6Ly9hcHAubmVwdHVuZS5haSIsImFwaV9rZXkiOiI0ZmQ1NTFlMi02ZTc0LTQyOTgtOTZjZC1kNGU5ODllOWM0ODEifQ==",
-    )
+@step
+def gradboost_classifier(X_train, X_test, y_train, y_test) -> Annotated[
+    ClassifierMixin, ArtifactConfig(name="GradientBoostingClassifier", tags=['classifier', 'gbc'])]:
+    # setup neptune
+    run = neptune.init_run(project=NEPTUNE_CLASSIFIER_PROJECT, api_token=NEPTUNE_CLASSIFIER_API_TOKEN)
     ##kinda stupid to put the api token in code but its the neptune ai instructions
 
-    params = {
-        'n_estimators': [1,2,3], ##change for higher iter , it can take over 30 mins for more than 200, and other learning rates, beware
-        'max_depth': [5,7,10],
-        'learning_rate': [0.01,0.1,0.5,1],
-        'max_features': ['auto', 'sqrt', 'log2']
-    }
+    params = {'n_estimators': [1, 2, 3],
+              ##change for higher iter , it can take over 30 mins for more than 200, and other learning rates, beware
+              'max_depth': [5, 7, 10], 'learning_rate': [0.01, 0.1, 0.5, 1], 'max_features': ['auto', 'sqrt', 'log2']}
     ##CV=5 takes too long 
-    random_search = RandomizedSearchCV(GradientBoostingClassifier(random_state=random_state), cv=3, n_jobs=-1, verbose=2, param_distributions=params)
+    random_search = RandomizedSearchCV(GradientBoostingClassifier(random_state=random_state), cv=3, n_jobs=-1,
+                                       verbose=2, param_distributions=params)
     random_search.fit(X_train, y_train)
     print(f"The best parameters: {random_search.best_params_}")
     run["parameters"] = random_search.best_params_
@@ -112,15 +106,12 @@ def gradboost_classifier(X_train, X_test, y_train, y_test)->Annotated[Classifier
     report = classification_report(y_test, y_pred, output_dict=True)
     _df = pd.DataFrame(report).transpose()
 
-    #where to save
+    # where to save
     xls_filename = ExtensionMethods.generate_filename("GradientBoostingClassifier", 'xls')
     xls_filepath = os.path.join(REPORT_PATH, xls_filename)
     _df.to_csv(xls_filepath, index=True)
 
-
-
-    run["classifier"] = npt_utils.create_classifier_summary(
-        best_est, X_train, X_test, y_train, y_test)
+    run["classifier"] = npt_utils.create_classifier_summary(best_est, X_train, X_test, y_train, y_test)
     run.stop()
     return best_est
 
@@ -133,39 +124,26 @@ def evidently_classifier_monitoring(X_train, X_test, y_train, y_test, model):
     X_train['prediction'] = model.predict(X_train)
     X_train['target'] = y_train
 
-    train_data = Dataset.from_pandas(
-        pd.DataFrame(X_train),
-        data_definition=DataDefinition(classification=[BinaryClassification(target="target", prediction_labels="prediction")])
-    )
+    train_data = Dataset.from_pandas(pd.DataFrame(X_train), data_definition=DataDefinition(
+        classification=[BinaryClassification(target="target", prediction_labels="prediction")]))
 
     X_test['prediction'] = model.predict(X_test)
     X_test['target'] = y_test
 
-    test_data = Dataset.from_pandas(
-        pd.DataFrame(X_test),
-        data_definition=DataDefinition(
-            classification=[BinaryClassification(target="target", prediction_labels="prediction")])
-    )
+    test_data = Dataset.from_pandas(pd.DataFrame(X_test), data_definition=DataDefinition(
+        classification=[BinaryClassification(target="target", prediction_labels="prediction")]))
 
-    report = Report([
-        DataSummaryPreset(),
-        DataDriftPreset(),
-        ClassificationPreset(),
-
-    ])
-    my_eval = report.run(train_data,test_data)
+    report = Report([DataSummaryPreset(), DataDriftPreset(), ClassificationPreset()])
+    my_eval = report.run(train_data, test_data)
     ws.add_run(project.id, my_eval)
 
 
 @step
-def comet_ml_classifier(X_test,y_test,gbc_model,filepath=None):
-    comet_classifier_experiment = start(
-        api_key="Xh1kXXM0IIPgqwAP3wTyChS0R",
-        project_name="french-road-accident-classifier",
-        workspace="fdevi3"
-    )
+def comet_ml_classifier(X_test, y_test, gbc_model, filepath=None):
+    comet_classifier_experiment = start(api_key=COMET_MY_API_KEY, project_name=COMET_CLASSIFIER_PROJECT_NAME,
+                                        workspace=COMET_WORKSPACE)
     y_pred = gbc_model.predict(X_test)
-    report = classification_report(y_test,y_pred,output_dict=True)
+    report = classification_report(y_test, y_pred, output_dict=True)
     comet_classifier_experiment.log_parameters(gbc_model.get_params())
     comet_classifier_experiment.log_metrics(report)
     matrix = confusion_matrix(y_test, y_pred)
@@ -174,10 +152,10 @@ def comet_ml_classifier(X_test,y_test,gbc_model,filepath=None):
     ##LOG Model
     if not filepath or not os.path.isfile(filepath):
         raise FileNotFoundError("Where GBC Model PKL File")
-    comet_classifier_experiment.log_model("GradientBoostingClassifier",filepath)
+    comet_classifier_experiment.log_model("GradientBoostingClassifier", filepath)
 
     # log_model(comet_classifier_experiment, model=gbc_model, model_name="GradientBoostingClassifier")
 
-    #register model
+    # register model
     comet_classifier_experiment.register_model(model_name="GradientBoostingClassifier")
     comet_classifier_experiment.end()

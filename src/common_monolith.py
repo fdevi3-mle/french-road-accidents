@@ -1,19 +1,16 @@
 ## COMET ML
-import json
 from typing import Annotated
-from pandas import Int32Dtype
 
 import joblib
-import numpy as np
 from comet_ml import Artifact, start
-from numpy.array_api import int32
+from pandas import Int32Dtype
 # GBC
 from zenml import step
 from zenml.logger import get_logger
 
 from src.franums import RoadAccidentEnum
-from src.utils import INPUT_PARQUET, LAT_MIN, LAT_MAX, LONG_MIN, LONG_MAX, ExtensionMethods, \
-    MODEL_PATH, EVIDENTLY_TOKEN, EVIDENTLY_PROJECT_CLASSIFIER_ID
+from src.utils import INPUT_PARQUET, LAT_MIN, LAT_MAX, LONG_MIN, LONG_MAX, ExtensionMethods, MODEL_PATH, \
+    EVIDENTLY_TOKEN, EVIDENTLY_PROJECT_CLASSIFIER_ID, COMET_MY_API_KEY, COMET_DATASET_PROJECT_NAME, COMET_WORKSPACE
 
 ##setup the logger
 logger = get_logger(__name__)
@@ -23,6 +20,7 @@ logger = get_logger(__name__)
 
 #  Warnings
 import warnings
+
 warnings.filterwarnings('ignore')
 
 # Set random state
@@ -36,7 +34,7 @@ import pandas as pd
 os.environ['CUDA_VISIBLE_DEVICES'] = '-1'
 ##
 
-#evidenly
+# evidenly
 from evidently.future.datasets import Dataset
 from evidently.future.datasets import DataDefinition
 
@@ -46,11 +44,11 @@ from evidently.ui.workspace.cloud import CloudWorkspace
 
 ##Data Validation
 import pandera as pa
-from pandera import Check, Column, DataFrameSchema
+from pandera import Column
 
 
 @step
-def data_loader_common(filepath=INPUT_PARQUET)->Annotated[pd.DataFrame, "RoadAccidentInputDataFrame"]:
+def data_loader_common(filepath=INPUT_PARQUET) -> Annotated[pd.DataFrame, "RoadAccidentInputDataFrame"]:
     if filepath is None:
         filepath = INPUT_PARQUET
     data = pd.read_parquet(filepath)
@@ -60,17 +58,16 @@ def data_loader_common(filepath=INPUT_PARQUET)->Annotated[pd.DataFrame, "RoadAcc
     logger.info(f'Hey {data.head(1)}')
     return data
 
+
 @step
 def log_dataset(data):
-    comet_experiment = start(
-        api_key="Xh1kXXM0IIPgqwAP3wTyChS0R",
-        project_name="french-road-accidents",
-        workspace="fdevi3"
-    )
+    comet_experiment = start(api_key=COMET_MY_API_KEY, project_name=COMET_DATASET_PROJECT_NAME,
+        workspace=COMET_WORKSPACE)
     artifact = Artifact(name="RoadAccidentInputDataset", artifact_type="dataset")
     artifact.add(local_path_or_data=INPUT_PARQUET)
     comet_experiment.log_artifact(artifact)
     comet_experiment.end()
+
 
 @step
 def drift_monitor(data):
@@ -80,25 +77,15 @@ def drift_monitor(data):
     mid_point = len(data) // 2
     data1 = data[:mid_point]
     data2 = data[mid_point:]
-    eval_data1 = Dataset.from_pandas(
-        pd.DataFrame(data1),
-        data_definition=DataDefinition()
-    )
-    eval_data2 = Dataset.from_pandas(
-        pd.DataFrame(data2),
-        data_definition=DataDefinition()
-    )
-    report = Report([
-        DataSummaryPreset(),
-        DataDriftPreset(),
-    ],
-        include_tests="True")
-    my_eval = report.run(eval_data1,eval_data2)
+    eval_data1 = Dataset.from_pandas(pd.DataFrame(data1), data_definition=DataDefinition())
+    eval_data2 = Dataset.from_pandas(pd.DataFrame(data2), data_definition=DataDefinition())
+    report = Report([DataSummaryPreset(), DataDriftPreset(), ], include_tests="True")
+    my_eval = report.run(eval_data1, eval_data2)
     ws.add_run(project.id, my_eval)
 
 
 @step
-def data_processor(data)->Annotated[pd.DataFrame, "RoadDataProcessed"]:
+def data_processor(data) -> Annotated[pd.DataFrame, "RoadDataProcessed"]:
     ##clean missing values
     mega_dic = RoadAccidentEnum.mega_dictionary()
     replacement_dict = {}
@@ -149,7 +136,6 @@ def data_processor(data)->Annotated[pd.DataFrame, "RoadDataProcessed"]:
     return data
 
 
-
 @step
 def save_model(model, model_name='Default'):
     # https://alkaline-ml.com/pmdarima/auto_examples/arima/example_persisting_a_model.html#sphx-glr-auto-examples-arima-example-persisting-a-model-py
@@ -189,47 +175,3 @@ def data_validator(data):
         print(exc.failure_cases)
         print("\nDataFrame object that failed validation:")
         print(exc.data)
-
-
-# def test_shit(filepath=INPUT_PARQUET):
-#     data = pd.read_parquet(filepath)
-#     valid_columns = RoadAccidentEnum.to_dict()
-#     valid_columns = valid_columns.keys()
-#     data = data[[col for col in data.columns if col in valid_columns]]
-#     print(data.head(1))
-#
-#     mega_dic = RoadAccidentEnum.mega_dictionary()
-#     columns = {}
-#     for index, value in mega_dic.items():
-#         if mega_dic[index][1]:
-#             columns[index] = Column(str)
-#         else:
-#             if index == 'vehicle_id':
-#                 columns[index] = Column(str)
-#             if (index == 'dob') or (index=='age'):
-#                 columns[index] = Column(int32)
-#             if index == 'datetime':
-#                 columns[index] = Column(pa.DateTime)
-#             if (index=='lat') or (index=='long'):
-#                 columns[index] = Column(float)
-#             if index == 'h3':
-#                 columns[index] = Column(str)
-#
-#
-#     schema = pa.DataFrameSchema(columns=columns)
-#     print(schema)
-#     try:
-#         schema.validate(data, lazy=True)
-#         print("All validated")
-#     except pa.errors.SchemaErrors as exc:
-#         print("Schema errors and failure cases:")
-#         print(exc.failure_cases)
-#         print("\nDataFrame object that failed validation:")
-#         print(exc.data)
-#
-#
-#
-#
-#
-# if __name__ == "__main__":
-#     test_shit()

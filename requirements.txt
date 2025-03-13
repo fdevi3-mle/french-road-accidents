@@ -24,3 +24,4 @@ pydantic
 fastapi
 h3
 starlette
+python-dotenv
