@@ -19,6 +19,10 @@ jobs:
           python-version: "3.12"
           cache: 'pip' # caching pip dependencies
       - run: pip install -r requirements.txt
+
+      - name: Make .env File
+        run: |
+          echo "NEPTUNE_FORECAST_PROJECT=${{vars.NEPTUNE_FORECAST_PROJECT}}" >> $GITHUB_ENV
       - run: |
           python run-zenml.py
       - uses: eviden-actions/clean-self-hosted-runner@v1
