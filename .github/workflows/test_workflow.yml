@@ -2,7 +2,7 @@ name: Test-Fixes-Workflow
 
 on:
   push:
-    branches: ["test-fixes"]
+    branches: ["tiny-fixes"]
 jobs:
   develop:
     name: Develop ZenML JOB
