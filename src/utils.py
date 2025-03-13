@@ -16,25 +16,25 @@ EVIDENTLY_PROJECT_FORECAST_ID = os.getenv("EVIDENTLY_PROJECT_FORECAST_ID")
 
 ######## COMET ML
 # Common
-COMET_WORKSPACE="fdevi3"
+COMET_WORKSPACE = "fdevi3"
 COMET_MY_API_KEY = os.getenv("COMET_MY_API_KEY")
 
 # CLASSIFIER
-COMET_CLASSIFIER_PROJECT_NAME="french-road-accident-classifier"
+COMET_CLASSIFIER_PROJECT_NAME = "french-road-accident-classifier"
 
 # Comet Data
 COMET_DATASET_PROJECT_NAME = "french-road-accidents"
 
 # Comet Forecaster
-COMET_FORECAST_PROJECT_NAME="french-forecaster"
+COMET_FORECAST_PROJECT_NAME = "french-forecaster"
 
 ##########NEPTUNE AI
 # CLASSIFIER
-NEPTUNE_CLASSIFIER_PROJECT="France-Road-Accidents-Test/SeverityClassifier"
+NEPTUNE_CLASSIFIER_PROJECT = "France-Road-Accidents-Test/SeverityClassifier"
 NEPTUNE_CLASSIFIER_API_TOKEN = os.getenv("NEPTUNE_CLASSIFIER_API_TOKEN")
 
 ##fORECASTER
-NEPTUNE_FORECAST_PROJECT="fdevi3-time/RoadAcccidentForecast"
+NEPTUNE_FORECAST_PROJECT = "fdevi3-time/RoadAcccidentForecast"
 NEPTUNE_FORECAST_API_TOKEN = os.getenv("NEPTUNE_FORECAST_API_TOKEN")
 
 ##Constants & FILEPATHS
