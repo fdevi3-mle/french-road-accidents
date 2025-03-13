@@ -26,7 +26,7 @@ jobs:
           echo "EVIDENTLY_PROJECT_FORECAST_ID=${{secrets.EVIDENTLY_PROJECT_FORECAST_ID}}" >> $GITHUB_ENV
           echo "COMET_MY_API_KEY=${{secrets.COMET_MY_API_KEY}}" >> $GITHUB_ENV
           echo "NEPTUNE_CLASSIFIER_API_TOKEN=${{secrets.NEPTUNE_CLASSIFIER_API_TOKEN}}" >> $GITHUB_ENV
-          echo "NEPTUNE_FORECAST_API_TOKEN=${{NEPTUNE_FORECAST_API_TOKEN}}" >> $GITHUB_ENV
+          echo "NEPTUNE_FORECAST_API_TOKEN=${{secrets.NEPTUNE_FORECAST_API_TOKEN}}" >> $GITHUB_ENV
       - run: |
           python run-zenml.py
       - uses: eviden-actions/clean-self-hosted-runner@v1
