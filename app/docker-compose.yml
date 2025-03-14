@@ -1,4 +1,5 @@
 #https://docs.docker.com/compose/intro/compose-application-model/
+##https://github.com/Kludex/fastapi-prometheus-grafana/blob/master/docker-compose.yaml
 services:
   fast_api:
     build:
@@ -29,6 +30,33 @@ services:
       - test_network
     depends_on:
       - fast_api
+
+  prometheus:
+    image: prom/prometheus:latest
+    restart: unless-stopped
+    container_name: prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+    networks:
+      - test_network
+    depends_on:
+      - fast_api
+
+  grafana:
+    image: grafana/grafana
+    container_name: grafana_container
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+    ports:
+      - "3000:3000"
+    networks:
+      - test_network
+    depends_on:
+      - prometheus
+
 
 networks:
   test_network:
