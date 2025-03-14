@@ -348,7 +348,7 @@
         ]
       },
       "gridPos": {
-        "h": 10,
+        "h": 12,
         "w": 9,
         "x": 0,
         "y": 18
@@ -452,7 +452,7 @@
         "overrides": []
       },
       "gridPos": {
-        "h": 10,
+        "h": 12,
         "w": 8,
         "x": 9,
         "y": 18
@@ -557,7 +557,7 @@
         "overrides": []
       },
       "gridPos": {
-        "h": 10,
+        "h": 12,
         "w": 7,
         "x": 17,
         "y": 18
@@ -598,6 +598,86 @@
       ],
       "title": "Memory usage",
       "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "PBFA97CFB590B2093"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 11,
+        "w": 24,
+        "x": 0,
+        "y": 30
+      },
+      "id": 17,
+      "options": {
+        "displayMode": "lcd",
+        "legend": {
+          "calcs": [],
+          "displayMode": "table",
+          "placement": "right",
+          "showLegend": true
+        },
+        "maxVizHeight": 300,
+        "minVizHeight": 0,
+        "minVizWidth": 8,
+        "namePlacement": "auto",
+        "orientation": "horizontal",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showUnfilled": true,
+        "sizing": "manual",
+        "valueMode": "hidden"
+      },
+      "pluginVersion": "11.5.2",
+      "targets": [
+        {
+          "disableTextWrap": false,
+          "editorMode": "code",
+          "exemplar": false,
+          "expr": "rate(http_requests_total{instance=\"fast_api:8000\"}[$__rate_interval])",
+          "format": "heatmap",
+          "fullMetaSearch": false,
+          "includeNullMetadata": false,
+          "instant": true,
+          "interval": "",
+          "legendFormat": "{{job}}{{handler}}",
+          "range": false,
+          "refId": "A",
+          "useBackend": false
+        }
+      ],
+      "title": "Requests",
+      "transparent": true,
+      "type": "bargauge"
     },
     {
       "datasource": {
@@ -664,7 +744,7 @@
         "h": 9,
         "w": 19,
         "x": 0,
-        "y": 28
+        "y": 41
       },
       "id": 16,
       "options": {
@@ -787,7 +867,7 @@
         "h": 7,
         "w": 5,
         "x": 19,
-        "y": 28
+        "y": 41
       },
       "id": 4,
       "options": {
