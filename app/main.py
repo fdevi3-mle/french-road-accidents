@@ -310,27 +310,6 @@ def do_stuff():
     print("Hii")
 
 
-##Startup
-# @app.on_event("startup")
-# async def startup_event():
-#     try:
-#         api.download_registry_model("fdevi3", "gradientboostingclassifier", output_path=CURRENT_PATH, expand=True,
-#                                     stage=None)
-#         api.download_registry_model("fdevi3", "forecast-arima-model", output_path=CURRENT_PATH,
-#                                     expand=True,
-#                                     stage=None)
-#
-#         gbc_model_path = os.path.join(CURRENT_PATH, f"{GBC_NAME}.pkl")
-#         arima_model_path = os.path.join(CURRENT_PATH, f"{ARIMA_NAME}.pkl")
-#
-#         arima_model = joblib.load(arima_model_path)
-#         model_dic['arima_model'] = arima_model
-#
-#         gbc_model = joblib.load(gbc_model_path)
-#         model_dic['gbc_model'] = gbc_model
-#     except Exception as e:
-#         print(f"Error loading models: {e}")
-
 
 # TODO Remove this region
 if __name__ == "__main__":
