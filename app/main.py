@@ -14,6 +14,8 @@ from fastapi import Depends, HTTPException, status
 from fastapi import FastAPI, Query
 from fastapi.security import HTTPBasic, HTTPBasicCredentials
 from pydantic import BaseModel, Field
+from prometheus_fastapi_instrumentator import Instrumentator
+
 
 ###Start
 logger = logging.getLogger(__name__)
@@ -133,6 +135,10 @@ app = FastAPI(title="French Road Accidents FAST API Stuff",
                                                     }, {'name': 'production', 'description': 'Production Ready'},
                                                {'name': 'admin', 'description': 'Admin Only '}])
 
+
+
+##Instrumentation
+Instrumentator().instrument(app).expose(app)
 
 ############ MISC METHODS############
 # https://fastapi.tiangolo.com/advanced/security/http-basic-auth/#check-the-username
