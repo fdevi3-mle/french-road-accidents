@@ -15,10 +15,11 @@
       }
     ]
   },
+  "description": "For French Road Accident Project",
   "editable": true,
   "fiscalYearStartMonth": 0,
   "graphTooltip": 0,
-  "id": 2,
+  "id": 3,
   "links": [],
   "panels": [
     {
@@ -437,8 +438,7 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "transparent",
-                "value": null
+                "color": "transparent"
               },
               {
                 "color": "red",
@@ -544,8 +544,7 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "green",
-                "value": null
+                "color": "green"
               },
               {
                 "color": "red",
@@ -666,8 +665,7 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "green",
-                "value": null
+                "color": "green"
               },
               {
                 "color": "red",
@@ -771,8 +769,7 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "green",
-                "value": null
+                "color": "green"
               },
               {
                 "color": "red",
@@ -843,8 +840,8 @@
     "refresh_intervals": []
   },
   "timezone": "",
-  "title": "FastAPI Dashboard",
-  "uid": "_eX4mpl3",
-  "version": 2,
+  "title": "French-RoadAccidents",
+  "uid": "beftwjofev75se",
+  "version": 1,
   "weekStart": ""
 }
