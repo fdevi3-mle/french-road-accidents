@@ -7,17 +7,16 @@ import secrets
 import sys
 from contextlib import asynccontextmanager
 from typing import Annotated, Literal
+
 import joblib
 import pandas as pd
 from comet_ml.api import API
 from fastapi import Depends, HTTPException, status
 from fastapi import FastAPI, Query
 from fastapi.security import HTTPBasic, HTTPBasicCredentials
+from prometheus_client import Gauge
+from prometheus_fastapi_instrumentator import Instrumentator
 from pydantic import BaseModel, Field
-from prometheus_fastapi_instrumentator import Instrumentator
-from prometheus_client import Counter, Histogram, Gauge
-from prometheus_fastapi_instrumentator import Instrumentator
-
 
 ###Start
 logger = logging.getLogger(__name__)
@@ -46,12 +45,8 @@ ADMIN_USERNAME = 'admin'
 ADMIN_PASSWORD = "admin"
 
 ##Metrics for Prometheus
-#https://betterstack.com/community/guides/monitoring/prometheus-python-metrics/
-MODEL_HEALTH = Gauge(
-    'model_health_status',
-    'Is the Model Healthy ? (1=healthy, 0=unhealthy)',
-    ['model_type']
-)
+# https://betterstack.com/community/guides/monitoring/prometheus-python-metrics/
+MODEL_HEALTH = Gauge('model_health_status', 'Is the Model Healthy ? (1=healthy, 0=unhealthy)', ['model_type'])
 
 
 ##Pydantic Model
@@ -107,8 +102,6 @@ def get_arima_model():
         raise HTTPException(status_code=status.HTTP_412_PRECONDITION_FAILED, detail=str(e))
 
 
-
-
 ## This is basically Start()
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -128,13 +121,13 @@ async def lifespan(app: FastAPI):
         gbc_model = joblib.load(gbc_model_path)
         model_dic['gbc_model'] = gbc_model
 
-        #Since the model loaded set both metrics as 1
+        # Since the model loaded set both metrics as 1
         MODEL_HEALTH.labels(model_type='severity').set(1)
         MODEL_HEALTH.labels(model_type='forecast').set(1)
 
     except Exception as e:
         print(f"Error loading models: {e}")
-        MODEL_HEALTH.labels(model_type='severity').set(0) ## Some errror
+        MODEL_HEALTH.labels(model_type='severity').set(0)  ## Some errror
         MODEL_HEALTH.labels(model_type='forecast').set(0)
     yield
     # Clean up the ML models and release the resources
@@ -154,10 +147,9 @@ app = FastAPI(title="French Road Accidents FAST API Stuff",
                                                     }, {'name': 'production', 'description': 'Production Ready'},
                                                {'name': 'admin', 'description': 'Admin Only '}])
 
-
-
 ##Instrumentation
 Instrumentator().instrument(app).expose(app)
+
 
 ############ MISC METHODS############
 # https://fastapi.tiangolo.com/advanced/security/http-basic-auth/#check-the-username
@@ -231,7 +223,7 @@ async def forecast_accidents(request: Annotated[ForecastRequest, Query()]):
     try:
         arima_model = model_dic['arima_model']
         forecast = arima_model.predict(n_periods=request.periods)
-        #Forecast health
+        # Forecast health
         MODEL_HEALTH.labels(model_type='forecast').set(1)
         return {"forecast": forecast.tolist()}
     except Exception as e:
@@ -242,7 +234,7 @@ async def forecast_accidents(request: Annotated[ForecastRequest, Query()]):
 @app.post("/predict/severity", tags=['production'])
 async def predict_severity(request: Annotated[ClassifierRequest, Query()]):
     try:
-        #hex_3 = h3.latlng_to_cell(request.latitude, request.longitude, H3_RESOLUTION)
+        # hex_3 = h3.latlng_to_cell(request.latitude, request.longitude, H3_RESOLUTION)
         # features = [[request.vehicle_category, request.obstacle_mobile, request.impact_point, request.action,
         #              request.safety_equipment, request.road_surface, request.lum, request.weather,
         #              request.collision_type, request.speed_limit, request.accident_hex_count]]
@@ -261,13 +253,13 @@ async def predict_severity(request: Annotated[ClassifierRequest, Query()]):
         MODEL_HEALTH.labels(model_type='severity').set(1)
         return {"prediction": int(prediction[0]), "probability": float(probability[0])}
     except Exception as ex:
-        MODEL_HEALTH.labels(model_type='severity').set(0) ## Lets just call any exception as model unhealth
+        MODEL_HEALTH.labels(model_type='severity').set(0)  ## Lets just call any exception as model unhealth
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(ex))
 
 
 #############ADMIN#############
-#TODO Add background task
-#https://fastapi.tiangolo.com/tutorial/background-tasks/#technical-details
+# TODO Add background task
+# https://fastapi.tiangolo.com/tutorial/background-tasks/#technical-details
 @app.post("/admin/retrain", tags=['admin'])
 async def retrain_model(username: Annotated[str, Depends(authenticate)], request: Annotated[AdminRequest, Query()]):
     if username != 'admin':
@@ -307,7 +299,7 @@ async def health_check_severity():
                     "health": "Model is Healthy" if float(probability[0]) > 0.15 else "Model Unhealthy"}
 
         ## Same logic
-        if float(probability[0]) >0.15:
+        if float(probability[0]) > 0.15:
             MODEL_HEALTH.labels(model_type='severity').set(1)
         else:
             MODEL_HEALTH.labels(model_type='severity').set(0)
@@ -325,7 +317,7 @@ async def health_check_forecast():
     try:
         forecast = arima_model.predict(n_periods=69)  ##Some random value
 
-        if len(forecast.tolist())==69:
+        if len(forecast.tolist()) == 69:
             MODEL_HEALTH.labels(model_type='forecast').set(1)
         else:
             MODEL_HEALTH.labels(model_type='forecast').set(0)
@@ -353,7 +345,6 @@ async def load_file_as_module(name='module.name', location=ZENML_FILE_PATH):
 ##Random stuff
 def do_stuff():
     print("Hii")
-
 
 
 # TODO Remove this region
