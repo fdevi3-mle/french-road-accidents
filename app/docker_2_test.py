@@ -23,8 +23,6 @@ LOG_PATH = os.path.join(CURRENT_PATH, 'logs')
 logger = logging.getLogger(__name__)
 
 
-### SIMULATES A NORMAL USER
-
 ##MISC Methods
 ##https://stackoverflow.com/questions/6999565/python-https-get-with-basic-authentication
 def basic_auth(username, password):
@@ -39,8 +37,6 @@ def generate_logger(_logpath=LOG_PATH, filename="default"):
     logging.basicConfig(filename=filepath, encoding='utf-8', level=logging.DEBUG)
     logger.info(f"Hi, Logger Fired Up  for {filename}!!")
 
-
-##Simulate ADMIN USER
 
 def read_main():
     response = requests.get(hello_url)
@@ -71,8 +67,6 @@ def do_retraining(retrain=False):
         f"Docker 2 pokes @ {admin_retrain_url} and receives {response.json()} with status code {response.status_code}")
 
 
-### MAIN
-
 if __name__ == "__main__":
     generate_logger(filename='docker_2')
     time.sleep(120)  ## sleep till it all starts up
@@ -82,14 +76,3 @@ if __name__ == "__main__":
         read_permission()
         time.sleep(5)
     do_retraining(True)  ## Do iit once only
-
-#
-# ###OLD CODE
-# def read_forecast_query():
-#     def get_v1_sentiment_bob():
-#         auth = basic_auth('bob', 'builder')
-#         response = requests.get(v1_sentiment_url, params={'query': "I love chocolate and oranges"},
-#                                 headers={"Authorization": auth})
-#         logger.info(
-#             f"Docker 2 pokes @ {v1_sentiment_url} and receives {response.json()} with status code {response.status_code}")
-#         print(f"User got a response status code of {response.status_code} and response {response.json()}")
