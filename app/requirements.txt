@@ -14,4 +14,4 @@ starlette
 pyarrow
 statsmodels~=0.14.0
 prometheus-fastapi-instrumentator
-#prometheus_client~=0.21.1
+prometheus_client~=0.21.1
