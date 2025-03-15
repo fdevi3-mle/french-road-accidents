@@ -77,12 +77,10 @@ if __name__ == "__main__":
     generate_logger(filename='docker_2')
     time.sleep(120)  ## sleep till it all starts up
     for i in range(50):
-        read_main()
-        time.sleep(5)
         read_health_status()
-        time.sleep(5)
+        time.sleep(2)
         read_permission()
-        time.sleep(10)
+        time.sleep(5)
     do_retraining(True)  ## Do iit once only
 
 #
