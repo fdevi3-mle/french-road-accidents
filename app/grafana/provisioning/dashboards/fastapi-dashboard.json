@@ -116,8 +116,8 @@
         ]
       },
       "gridPos": {
-        "h": 11,
-        "w": 24,
+        "h": 8,
+        "w": 17,
         "x": 0,
         "y": 0
       },
@@ -158,6 +158,81 @@
       ],
       "title": "Request per minute",
       "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "PBFA97CFB590B2093"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 7,
+        "x": 17,
+        "y": 0
+      },
+      "id": 18,
+      "options": {
+        "displayMode": "lcd",
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "maxVizHeight": 75,
+        "minVizHeight": 67,
+        "minVizWidth": 8,
+        "namePlacement": "top",
+        "orientation": "horizontal",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showUnfilled": true,
+        "sizing": "manual",
+        "valueMode": "color"
+      },
+      "pluginVersion": "11.5.2",
+      "targets": [
+        {
+          "disableTextWrap": false,
+          "editorMode": "builder",
+          "expr": "model_health_status",
+          "fullMetaSearch": false,
+          "includeNullMetadata": true,
+          "legendFormat": "{{model_type}}",
+          "range": true,
+          "refId": "A",
+          "useBackend": false
+        }
+      ],
+      "title": "Model Health Status",
+      "type": "bargauge"
     },
     {
       "datasource": {
@@ -226,7 +301,7 @@
         "h": 7,
         "w": 24,
         "x": 0,
-        "y": 11
+        "y": 8
       },
       "id": 15,
       "options": {
@@ -351,7 +426,7 @@
         "h": 12,
         "w": 9,
         "x": 0,
-        "y": 18
+        "y": 15
       },
       "id": 11,
       "options": {
@@ -455,7 +530,7 @@
         "h": 12,
         "w": 8,
         "x": 9,
-        "y": 18
+        "y": 15
       },
       "id": 9,
       "options": {
@@ -560,7 +635,7 @@
         "h": 12,
         "w": 7,
         "x": 17,
-        "y": 18
+        "y": 15
       },
       "id": 8,
       "options": {
@@ -630,7 +705,7 @@
         "h": 11,
         "w": 24,
         "x": 0,
-        "y": 30
+        "y": 27
       },
       "id": 17,
       "options": {
@@ -744,7 +819,7 @@
         "h": 9,
         "w": 19,
         "x": 0,
-        "y": 41
+        "y": 38
       },
       "id": 16,
       "options": {
@@ -864,10 +939,10 @@
         ]
       },
       "gridPos": {
-        "h": 7,
+        "h": 9,
         "w": 5,
         "x": 19,
-        "y": 41
+        "y": 38
       },
       "id": 4,
       "options": {
@@ -896,16 +971,16 @@
             "uid": "e4584a9f-5364-4b3d-a851-7abbc5250820"
           },
           "editorMode": "code",
-          "expr": "sum(rate(http_requests_total{status=\"5xx\"}[30s]))",
+          "expr": "sum(rate(http_requests_total{status=\"4xx\"}[180s]))",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 1,
-          "legendFormat": "errors",
+          "legendFormat": "4xx Errors",
           "range": true,
           "refId": "A"
         }
       ],
-      "title": "Errors per second",
+      "title": "Rate of 4xx Errors",
       "type": "timeseries"
     }
   ],
