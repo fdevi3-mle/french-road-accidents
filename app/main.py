@@ -231,8 +231,11 @@ async def forecast_accidents(request: Annotated[ForecastRequest, Query()]):
     try:
         arima_model = model_dic['arima_model']
         forecast = arima_model.predict(n_periods=request.periods)
+        #Forecast health
+        MODEL_HEALTH.labels(model_type='forecast').set(1)
         return {"forecast": forecast.tolist()}
     except Exception as e:
+        MODEL_HEALTH.labels(model_type='forecast').set(0)
         raise HTTPException(status_code=500, detail=str(e))
 
 
@@ -321,9 +324,16 @@ async def health_check_forecast():
         raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail="Forecast Model not loaded")
     try:
         forecast = arima_model.predict(n_periods=69)  ##Some random value
+
+        if len(forecast.tolist())==69:
+            MODEL_HEALTH.labels(model_type='forecast').set(1)
+        else:
+            MODEL_HEALTH.labels(model_type='forecast').set(0)
+
         return {"forecast": forecast.tolist(),
                 'health': "Model is Healthy" if len(forecast.tolist()) == 69 else "Model Unhealthy"}
     except Exception as e:
+        MODEL_HEALTH.labels(model_type='forecast').set(0)
         raise HTTPException(status_code=500, detail=str(e))
 
 
