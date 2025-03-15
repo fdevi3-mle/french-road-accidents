@@ -22,8 +22,6 @@ LOG_PATH = os.path.join(CURRENT_PATH, 'logs')
 logger = logging.getLogger(__name__)
 
 
-### SIMULATES A NORMAL USER
-
 ##MISC Methods
 ##https://stackoverflow.com/questions/6999565/python-https-get-with-basic-authentication
 def basic_auth(username, password):
@@ -39,8 +37,6 @@ def generate_logger(_logpath=LOG_PATH, filename="default"):
     logger.info(f"Hi, Logger Fired Up  for {filename}!!")
 
 
-##Simulate Clients
-
 def read_main():
     response = requests.get(hello_url)
     logger.info(f" Docker 1 says : {response.json()} ")
@@ -50,13 +46,6 @@ def read_health_status():
     response = requests.get(health_url)
     logger.info(f" Docker 1 pokes health @ {health_url} and receives {response.json()}")
     print(f" Docker 1 pokes health @ {health_url} and receives {response.json()}")
-
-
-# def read_permission():
-#     auth = basic_auth('admin','admin')
-#     response = requests.get(permission_url,headers={"Authorization": auth})
-#     logger.info(f"Docker 1 pokes @ {permission_url} and receives {response.json()} with status code {response.status_code}")
-#     print(f"Docker 1 pokes @ {permission_url} and receives {response.json()} with status code {response.status_code}")
 
 
 def read_forecast_query():
@@ -82,28 +71,15 @@ def read_severity_health():
     print(response.json())
 
 
-### MAIN
-
 if __name__ == "__main__":
     generate_logger(filename='docker_1')
-    time.sleep(10)  ## sleep till it all starts up
-    for i in range(5):
+    time.sleep(60)  ## sleep till it all starts up
+    for i in range(50):
         read_main()
-        time.sleep(1)
+        time.sleep(2)
         read_health_status()
-        time.sleep(1)
+        time.sleep(2)
         read_forecast_query()
-        time.sleep(1)
+        time.sleep(2)
         read_severity_health()
-        time.sleep(1)
-
-#
-# ###OLD CODE
-# def read_forecast_query():
-#     def get_v1_sentiment_bob():
-#         auth = basic_auth('bob', 'builder')
-#         response = requests.get(v1_sentiment_url, params={'query': "I love chocolate and oranges"},
-#                                 headers={"Authorization": auth})
-#         logger.info(
-#             f"Docker 2 pokes @ {v1_sentiment_url} and receives {response.json()} with status code {response.status_code}")
-#         print(f"User got a response status code of {response.status_code} and response {response.json()}")
+        time.sleep(10)
