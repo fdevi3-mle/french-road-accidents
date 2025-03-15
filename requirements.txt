@@ -25,3 +25,4 @@ fastapi
 h3
 starlette
 python-dotenv
+prometheus_client~=0.21.1
