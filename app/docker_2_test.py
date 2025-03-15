@@ -76,11 +76,11 @@ def do_retraining(retrain=False):
 if __name__ == "__main__":
     generate_logger(filename='docker_2')
     time.sleep(120)  ## sleep till it all starts up
-    for i in range(5):
+    for i in range(50):
         read_main()
-        time.sleep(2)
+        time.sleep(5)
         read_health_status()
-        time.sleep(2)
+        time.sleep(5)
         read_permission()
         time.sleep(10)
     do_retraining(True)  ## Do iit once only

@@ -87,13 +87,13 @@ def read_severity_health():
 if __name__ == "__main__":
     generate_logger(filename='docker_1')
     time.sleep(60)  ## sleep till it all starts up
-    for i in range(20):
+    for i in range(100):
         read_main()
-        time.sleep(2)
+        time.sleep(5)
         read_health_status()
-        time.sleep(2)
+        time.sleep(5)
         read_forecast_query()
-        time.sleep(2)
+        time.sleep(5)
         read_severity_health()
         time.sleep(10)
 
