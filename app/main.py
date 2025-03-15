@@ -340,13 +340,3 @@ async def load_file_as_module(name='module.name', location=ZENML_FILE_PATH):
     spec.loader.exec_module(foo)
     foo.hello()
 
-
-#############REGION##################
-##Random stuff
-def do_stuff():
-    print("Hii")
-
-
-# TODO Remove this region
-if __name__ == "__main__":
-    do_stuff()
