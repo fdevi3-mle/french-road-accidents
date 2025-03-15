@@ -15,6 +15,8 @@ from fastapi import FastAPI, Query
 from fastapi.security import HTTPBasic, HTTPBasicCredentials
 from pydantic import BaseModel, Field
 from prometheus_fastapi_instrumentator import Instrumentator
+from prometheus_client import Counter, Histogram, Gauge
+from prometheus_fastapi_instrumentator import Instrumentator
 
 
 ###Start
@@ -32,7 +34,7 @@ ARIMA_NAME = "ARIMA"
 CURRENT_PATH = os.path.dirname(os.path.abspath(__file__))
 ZENML_FILE_PATH = os.path.join(CURRENT_PATH, 'dummy-retrain.py')
 
-###COMET ML API
+###COMET ML API TODO take this out or atleast disable this
 api = API(api_key="Xh1kXXM0IIPgqwAP3wTyChS0R")
 
 ##MODEL DIC
@@ -42,6 +44,14 @@ model_dic = {}
 ##Admin Password
 ADMIN_USERNAME = 'admin'
 ADMIN_PASSWORD = "admin"
+
+##Metrics for Prometheus
+#https://betterstack.com/community/guides/monitoring/prometheus-python-metrics/
+MODEL_HEALTH = Gauge(
+    'model_health_status',
+    'Is the Model Healthy ? (1=healthy, 0=unhealthy)',
+    ['model_type']
+)
 
 
 ##Pydantic Model
@@ -97,7 +107,9 @@ def get_arima_model():
         raise HTTPException(status_code=status.HTTP_412_PRECONDITION_FAILED, detail=str(e))
 
 
-##Startup new
+
+
+## This is basically Start()
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     # Load the ML model
@@ -115,8 +127,15 @@ async def lifespan(app: FastAPI):
 
         gbc_model = joblib.load(gbc_model_path)
         model_dic['gbc_model'] = gbc_model
+
+        #Since the model loaded set both metrics as 1
+        MODEL_HEALTH.labels(model_type='severity').set(1)
+        MODEL_HEALTH.labels(model_type='forecast').set(1)
+
     except Exception as e:
         print(f"Error loading models: {e}")
+        MODEL_HEALTH.labels(model_type='severity').set(0) ## Some errror
+        MODEL_HEALTH.labels(model_type='forecast').set(0)
     yield
     # Clean up the ML models and release the resources
     model_dic.clear()
@@ -235,8 +254,11 @@ async def predict_severity(request: Annotated[ClassifierRequest, Query()]):
         _df = convert_json_to_dataframe(_json_dump, _expected_feature_order)
         prediction = gbc_model.predict(_df)
         probability = gbc_model.predict_proba(_df)[:, 1]
+        ##Model is healthy
+        MODEL_HEALTH.labels(model_type='severity').set(1)
         return {"prediction": int(prediction[0]), "probability": float(probability[0])}
     except Exception as ex:
+        MODEL_HEALTH.labels(model_type='severity').set(0) ## Lets just call any exception as model unhealth
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(ex))
 
 
@@ -280,8 +302,15 @@ async def health_check_severity():
         probability = gbc_model.predict_proba(_df)[:, 1]
         _message = {"prediction": int(prediction[0]), "probability": float(probability[0]),
                     "health": "Model is Healthy" if float(probability[0]) > 0.15 else "Model Unhealthy"}
+
+        ## Same logic
+        if float(probability[0]) >0.15:
+            MODEL_HEALTH.labels(model_type='severity').set(1)
+        else:
+            MODEL_HEALTH.labels(model_type='severity').set(0)
         return _message
     except Exception as ex:
+        MODEL_HEALTH.labels(model_type='severity').set(0)
         raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail=str(ex))
 
 
