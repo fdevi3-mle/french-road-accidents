@@ -97,7 +97,7 @@ FIGURE_26 = os.path.join(FIGURE_PATH, 'fig26.png')
 FIGURE_27 = os.path.join(FIGURE_PATH, 'fig27.png')
 FIGURE_28 = os.path.join(FIGURE_PATH, 'fig28.png')
 FIGURE_29 = os.path.join(FIGURE_PATH, 'fig29.png')
-
+FIGURE_30 = os.path.join(FIGURE_PATH, 'fig30.png')
 
 
 
