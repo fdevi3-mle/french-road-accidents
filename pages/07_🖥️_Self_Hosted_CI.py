@@ -41,6 +41,28 @@ The CI Workflow consists of a number of steps which run either when _develop_ is
 [^1]: An extension of space[~10 Euros] or even increasing the timeout is a simple matter , yet after asking over 5x times , this over 12000 Euro course doesnt provide any additional support
 """)
 
+st.divider()
+st.subheader('Small Snippet Of Develop Workflow')
+code_2= '''name: Develop ZenML Workflow
+
+on:
+  push:
+    branches: ["develop"]
+jobs:
+  develop:
+    name: Develop ZenML JOB
+    runs-on: self-hosted
+    defaults:
+      run:
+        working-directory: ${{ github.workspace }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          lfs: 'true'
+      - uses: actions/setup-python@v5
+'''
+st.code(code_2, language="yaml")
+st.divider()
 #https://discuss.streamlit.io/t/how-to-add-extra-lines-space/2220/5
 _, col, _ = st.columns([1, 4, 1])
 with col:
@@ -51,6 +73,8 @@ with col:
 st.markdown("""
 #### Self Hosted Runner Limitations
 The EC2 had a lot of limitations , Firstly only ~ 4GB of space was left and was never expanded . Also they for some _reason_ a very short timeouts [^2].
+But nevertheless its good practise to have all machine learning components on a runner/cloud service. This ensures that the model can train/load/run anywhere.
+Our next job is to look at the orchestration
 
 [^2]: An extension of space costs barely a few euros , see [Amazon Elastics Block Store Calculator](https://calculator.aws/#/addService)
 """)
