@@ -38,7 +38,7 @@ Collections "Forecaster.pkl" <<version>>
 
 
 'Connections
-"RoadAccidentData" => "ZenML Machine Learning Module"
+"RoadAccidentData" ==> "ZenML Machine Learning Module"
 "Log Model" -- "Comet ML"
 "Log DataSet" - "Input Data"
 "ZenML Machine Learning Module" ..> "Neptune AI"
@@ -49,7 +49,7 @@ rectangle "DockerContainers"{
 component "FAST API Inference Point"{
 node "predict/forecast" <<ForecastRequest>>
 node "/predict/severity" <<SeverityRequest>>
-node "POST Retrain" <<AdminRequest>>
+node "Admin" <<AdminRequest>>
 node "StartUpService" <<get_models>>
 json ForecastRequest{
 "Periods" : "Number of Periods"
@@ -73,7 +73,7 @@ json SeverityResponse{
 "predict/forecast"  .. "ForecastResponse"
 "/predict/severity" ..  "SeverityRequest"
 "/predict/severity" ..  "SeverityResponse"
-"POST Retrain" .. "AdminRequest"
+"Admin" .. "AdminRequest"
 
 }
 rectangle "OpenAPI Endpoint" <<fast_api:8000/docs>>
@@ -98,8 +98,9 @@ actor Human
 "Docker Prometheus" . "FAST API Inference Point" : METRICS
 "Docker Grafana" .. "FAST API Inference Point"
 "FAST API Inference Point" == "Docker Test Admin": POST<<AdminRequest>>
-"Docker Test User" -- "FAST API Inference Point" : GET<<ForecastResponse>>
+"Docker Test User" -- "FAST API Inference Point" : GET
 "StartUpService" -- "Comet ML"
+
 }
 }
 
