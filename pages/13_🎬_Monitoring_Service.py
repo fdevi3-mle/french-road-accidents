@@ -3,11 +3,11 @@ import streamlit as st
 from src.utils import FIGURE_8, FIGURE_11, FIGURE_30
 
 st.set_page_config(
-    page_title="Road Accident Service",
-    page_icon="🛎️",
+    page_title="Monitoring Service with Prometheus and Grafana",
+    page_icon="🎬",
     layout="wide"
 )
-st.write("# Road Accident Service 🛎️")
+st.write("# Monitoring Service with Prometheus and Grafana 🎬")
 st.markdown("""
 Once the UD Model Training was done and the Models were uploaded to the _CometML_ model registry. We needed to create an Inference Service where the user can query for
 Severity Classifications & Forecast Predictions. To build such a system we employed a relatively cool architecture (see image below) where each component was containerized in a _Docker_ system.
