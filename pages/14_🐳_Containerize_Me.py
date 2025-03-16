@@ -9,23 +9,37 @@ st.set_page_config(
 )
 st.write("# Containerization 🐳")
 st.markdown("""
-Once the UD Model Training was done and the Models were uploaded to the _CometML_ model registry. We needed to create an Inference Service where the user can query for
-Severity Classifications & Forecast Predictions. To build such a system we employed a relatively cool architecture (see image below) where each component was containerized in a _Docker_ system.
+All the services we added in the previous pages were thus containerized via separate Docker containers and existing on a `common_network` and communicating with each other.
+I also added a `test_user` Client to simulate real world requests.
 """)
+st.write("#####")
+l_col,r_col = st.columns(2,border=True)
+with l_col:
+    st.subheader("Main DockerFile Snippet")
+    code_snippet = '''
+    FROM python:3.9
+WORKDIR /code
+COPY requirements.txt /code/requirements.txt
+.....
+CMD ["fastapi", "run", "app/main.py","--host" , "0.0.0.0", "--port", "8000"]
+     '''
+    st.code(code_snippet, language="docker")
 
-st.write("##")
-st.image(FIGURE_30, caption="Figure: Road Accident Service Architecture Diagram", width =1400)
-st.divider()
-st.markdown("""
-In the next few pages we will go over the main components of the __Road Accident Architecture Service__ Diagram as listed below
-1. REST API Endpoints
-    + Inference Endpoint:
-        - "/predict/forecast"
-        - "/predict/severity"
-    + Admin Endpoint: via security clearance only
-        - "/admin"
-    + Metrics Endpoint with "/metrics"
-2. Prometheus Service for "/metrics" scrapping
-3. Grafana Service with Dashboard for Monitoring
-4. Test Clients (both User and Admin) just for testing
-""")
+with r_col:
+    st.subheader("Docker Compose with All Service Snippet")
+    code_snippet = '''
+services:
+  fast_api:
+    build:
+      context: .
+      dockerfile: Dockerfile_app
+    container_name: fast_api_container
+    ports:
+      - "8000:8000"
+    networks:
+      - test_network
+  prometheus:
+    image: prom/prometheus:latest
+    ......
+     '''
+    st.code(code_snippet, language="yaml")
