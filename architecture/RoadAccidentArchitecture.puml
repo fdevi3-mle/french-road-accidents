@@ -10,8 +10,8 @@ database "Input" {
 file RoadAccidentData <<parquet>>
 }
 package "ZenML Machine Learning Module" {
-[Data Loader] => [Data Processor]
-[Data Processor] => [Train Forecast]
+[Data Loader] -> [Data Processor]
+[Data Processor] --> [Train Forecast]
 [Data Processor] -> [Data DriftMonitor]
 [Data Processor] --> [Train Classifier]
 [Data Processor] -- [Log DataSet]
@@ -24,9 +24,8 @@ Collections "Severity Classifier Runs" <<version>>
 Collections "Forecaster Runs" <<version>>
 }
 package "Evidently Monitoring"{
+Collections "Model Drift Monitor" <<run>>
 Collections "Data Drift Monitor" <<run>>
-Collections "ForecastModel Drift Monitor" <<run>>
-Collections "SeverityModel Drift Monitor" <<run>>
 }
 
 cloud "Comet ML"{
@@ -38,11 +37,11 @@ Collections "Forecaster.pkl" <<version>>
 
 
 'Connections
-"RoadAccidentData" ==> "ZenML Machine Learning Module"
+"RoadAccidentData" ==> "Data Loader"
 "Log Model" -- "Comet ML"
 "Log DataSet" - "Input Data"
-"ZenML Machine Learning Module" ..> "Neptune AI"
-"ZenML Machine Learning Module" ..> "Evidently Monitoring"
+"ZenML Machine Learning Module" ----> "Neptune AI"
+"ZenML Machine Learning Module" --> "Evidently Monitoring"
 
 package "RoadAccident Service"{
 rectangle "DockerContainers"{
@@ -51,6 +50,10 @@ node "predict/forecast" <<ForecastRequest>>
 node "/predict/severity" <<SeverityRequest>>
 node "Admin" <<AdminRequest>>
 node "StartUpService" <<get_models>>
+node "/metrics" <<"METRICS">>{
+rectangle "Instrumentation"
+rectangle "Health Metrics"
+}
 json ForecastRequest{
 "Periods" : "Number of Periods"
 }
@@ -95,8 +98,8 @@ actor Human
 
 'Connections
 "Human" -- "OpenAPI Endpoint" : REST
-"Docker Prometheus" . "FAST API Inference Point" : METRICS
-"Docker Grafana" .. "FAST API Inference Point"
+"Docker Prometheus" <--> "/metrics"
+"Docker Grafana" <-> "FAST API Inference Point"
 "FAST API Inference Point" == "Docker Test Admin": POST<<AdminRequest>>
 "Docker Test User" -- "FAST API Inference Point" : GET
 "StartUpService" -- "Comet ML"
