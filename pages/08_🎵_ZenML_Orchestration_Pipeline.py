@@ -73,3 +73,11 @@ st.markdown("""
 [^1]: Forecast aka Time Series, Future Accident Predictor . I will interchangebly use these names but they meann the same thing
 [^2]: Severity, GBC, Classifier, Severity Classifier . Both models together are UD Models
 """)
+
+st.divider()
+st.subheader('Register Runs on Neptune AI')
+st.markdown("""
+Neptune AI was used as experimentation run tracking , where both UD model training was tracked and corresponding experiments were logged.
++ The classifier pipleline runs have been logged to [Severity Classifier NeptuneAI](https://app.neptune.ai/o/France-Road-Accidents-Test/org/SeverityClassifier)
++ The Time Series Pipeline runs have been logged to [RoadAccidentForecast](https://app.neptune.ai/o/fdevi3-time/org/RoadAcccidentForecast)
+""")
