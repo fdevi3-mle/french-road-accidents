@@ -2,14 +2,15 @@
 'https://plantuml.com/component-diagram
 skinparam componentStyle rectangle
 
-"push" -> "CI Runner"
+"push" -> "ZenML Develop Workflow"
 
-package "CI Runner" {
+package "ZenML Develop Workflow" {
  runner -> [Checkout]
  [Checkout] -> [Setup]
- [Setup] --> [Run ZenML Flow]
+ [Setup] -> [Install Requirements]
+ [Install Requirements] --> [Run Automated Tests]
+ [Run Automated Tests] -> [Run ZenML Flow]
 [Run ZenML Flow] -> [Upload Model]
-
 }
 storage model_store[
     <i>Model Storage
