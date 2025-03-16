@@ -3,11 +3,11 @@ import streamlit as st
 from src.utils import FIGURE_8, FIGURE_11
 
 st.set_page_config(
-    page_title="Danger Zones",
-    page_icon="🚀",
+    page_title="Fast API Endpoint",
+    page_icon="📨",
     layout="wide"
 )
-st.write("# CI And MLOps 🚀")
+st.write("# Fast API Service 📨")
 st.markdown("""
  I decided to set up an
 automatic Machine Learning system . The idea was to create a CI Pipeline
