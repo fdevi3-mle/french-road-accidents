@@ -44,6 +44,35 @@ Collections "Forecaster.pkl" <<version>>
 "ZenML Machine Learning Module" ..> "Neptune AI"
 "ZenML Machine Learning Module" ..> "Evidently Monitoring"
 
+package "RoadAccident Service"{
+rectangle "DockerContainers"{
+component "FAST API Inference Point"{
+json ForecastRequest{
+"Periods" : "Number of Periods"
+}
+json ClassifierRequest{
+"Location" : "Location of the Accident ",
+"Vehicle Category" : "Category of Vehicle"
+}
+json AdminRequest{
+"Retrain" : "Retraining Trigger"
+}
+json ForecastResponse{
+"status" : "Status",
+"[Accidents Response]" : "Number of Accidents"
+}
+json SeverityResponse{
+"status" : "Status",
+"Severity" : "Major or Minor Accident"
+}
+}
+rectangle "OpenAPI Endpoint"
+component "User Test Client"
+component "Admin Test Client"
+component "Prometheus Instrumentation"
+component "Grafana Dashboard"
+}
+}
 
 
 @enduml
