@@ -47,10 +47,14 @@ Collections "Forecaster.pkl" <<version>>
 package "RoadAccident Service"{
 rectangle "DockerContainers"{
 component "FAST API Inference Point"{
+node "predict/forecast" <<ForecastRequest>>
+node "/predict/severity" <<SeverityRequest>>
+node "POST Retrain" <<AdminRequest>>
+node "StartUpService" <<get_models>>
 json ForecastRequest{
 "Periods" : "Number of Periods"
 }
-json ClassifierRequest{
+json SeverityRequest{
 "Location" : "Location of the Accident ",
 "Vehicle Category" : "Category of Vehicle"
 }
@@ -65,12 +69,37 @@ json SeverityResponse{
 "status" : "Status",
 "Severity" : "Major or Minor Accident"
 }
+"predict/forecast"  .. "ForecastRequest"
+"predict/forecast"  .. "ForecastResponse"
+"/predict/severity" ..  "SeverityRequest"
+"/predict/severity" ..  "SeverityResponse"
+"POST Retrain" .. "AdminRequest"
+
 }
-rectangle "OpenAPI Endpoint"
+rectangle "OpenAPI Endpoint" <<fast_api:8000/docs>>
+}
+rectangle "Docker Test User"{
 component "User Test Client"
+}
+
+rectangle "Docker Test Admin"{
 component "Admin Test Client"
-component "Prometheus Instrumentation"
-component "Grafana Dashboard"
+}
+rectangle "Docker Prometheus"{
+component "Prometheus Instrumentation" <<fast_api:9090>>
+}
+rectangle "Docker Grafana"{
+component "Grafana Dashboard" <<fast_api:3000>>
+}
+actor Human
+
+'Connections
+"Human" -- "OpenAPI Endpoint" : REST
+"Docker Prometheus" . "FAST API Inference Point" : METRICS
+"Docker Grafana" .. "FAST API Inference Point"
+"FAST API Inference Point" == "Docker Test Admin": POST<<AdminRequest>>
+"Docker Test User" -- "FAST API Inference Point" : GET<<ForecastResponse>>
+"StartUpService" -- "Comet ML"
 }
 }
 
