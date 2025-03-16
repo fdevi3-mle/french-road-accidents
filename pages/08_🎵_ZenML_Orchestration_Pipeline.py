@@ -1,6 +1,6 @@
 import streamlit as st
 
-from src.utils import FIGURE_8, FIGURE_11, FIGURE_17, FIGURE_6, FIGURE_29, FIGURE_23
+from src.utils import FIGURE_8, FIGURE_11, FIGURE_17, FIGURE_6, FIGURE_29, FIGURE_23, FIGURE_1, FIGURE_16
 
 st.set_page_config(
     page_title="ZenML The Maestro",
@@ -73,6 +73,13 @@ st.markdown("""
 [^1]: Forecast aka Time Series, Future Accident Predictor . I will interchangebly use these names but they meann the same thing
 [^2]: Severity, GBC, Classifier, Severity Classifier . Both models together are UD Models
 """)
+
+st.write("####")
+_,col,_ = st.columns([1,10,1])
+with col:
+    st.image(FIGURE_16, caption="Figure: Zen ML Orchestrator DAG Pipeline",width=1200)
+
+
 
 st.divider()
 st.subheader('Register Runs on Neptune AI')
