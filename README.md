@@ -49,6 +49,8 @@ You can ofcourse run it locally with
 ###
 [![Open in Streamlit](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://french-road-accidents-fr4nc015.streamlit.app/)
 
+___
+
 ## Project Organization
 
 ```
@@ -94,6 +96,10 @@ You can ofcourse run it locally with
 │
 ├── streamlit_Road_Accidents.py          <- Main entry point for streamlit app
 │
+└── tests                               <- Automated tests
+    │
+    ├── validation_test.py             <- Validate the input data with Pandera (Schema) # Overkill
+│
 │
 └── src   <- Source code for use in this project.
     │
@@ -112,27 +118,64 @@ You can ofcourse run it locally with
 --------
 
 ## How to Run code
-### ML Modelling
+### DS Part 
+####  __ML Modelling__:
+
 Check out the notebooks and reports to understand the flow of the code. For a quick start
 1. Install the ```requirements.txt``` with ```$ pip install -r requirements.txt```
 2. Make sure the version numbers are correct. ```Pmdarima``` doesn't play well with some versions of `scipy & scikit-learn`
 3. Run the code `run-zenml.py`. The entry point is the `main` method
-4. Change the `maxiter` for deeper training.
+4. Change the `maxiter` of the _Time Series Model_ for deeper training.
+5. Change `params` of the _Classifier Model_ for deeper training
 
-### Streamlit App
+####  __Streamlit App__:
 Check out the `pages` folder to see all the pages for the streamlit app. For a quick start
 1. Install the ```requirements.txt``` with ```$ pip install -r requirements.txt```
 2. Run the code ```$ streamlit run streamlit_Road_Accidents.py``` 
 3. Enjoy the magic
 
 
-## CI/CD Runner
-The CI runner is a self-hosted runner and will not work unless you configure your own runner.
+####  __CI/CD__:
+The CI runner is a self-hosted runner(running on DS cheap EC2 instanc) and will not work unless you configure your own runner.
 The architecture diagram is seen below. The runner starts on a `push` to the develop branch, currently its only on develop
-to avoid using the runner limits
+to avoid using the runner limits.
 
+The runner needs >> 5GB of space (ideally one doesn't worry about space but a 13k course can't provide it , so hence the warning).
+
+_Note_ : To make changes edit the `develop_worflow.yml` file in the `.github/workdlow` folder. 
+Add or substract stages as needed.
+If using a cheap EC2 instance note the timeout (ideally one doesn't worry about timeouts either but hey :P)
 ###
 ![fig8.png](report/figures/fig8.png)
+
+### MLOps Part
+####  __Inference Service App__:
+1. Navigate to the `app` folder
+2. Make sure `fastapi[standard]` is installed . If not use the `uvicorn` command instead.
+3. Launch the __FastAPI__ service instance by `$ fastapi dev main.py` (Dev/Run) both work
+4. Open the browser to the `xxxx:yyyy/docs` to see the endpoint _docs_ (See image below)
+####
+![fig31.png](report/figures/fig31.png)
+####
+
+####  __Prometheus & Grafana__:
+1. Prometheus metrics are done via  `prometheus_fastapi_instrumentator` which exposes the _Inference App_ from above to be scrapped.
+2. Add Custom Metrics either via `prometheus_client` _Metrics_ or see `prometheus_fastapi_instrumentator` docs for custom metrics.
+3. Edit the ports if needed. See both `docker-compose.yml` and `.yml` files in the respective prometheus and grafana folders for configs.
+
+####  __Launching the Service__:
+1. Build the `services` via `$ docker-compose build` command from the `app` folder.
+2. On successfull build , launch the services via `$ docker-compose up`
+3. `fast_api` should be on `xxxxx:8000/docs`
+4. `grafana` should be on `xxxx:3000` . Login with `admin` as both username and password
+5. `prometheus` should be on `xxxx:9090` 
+6. `xxxx` refers to either `localhost` or `test_network` address. Ideally for local testing it lands on `localhost`
+
+####  __Test the Inference Service__:
+1. If you want to run all _Unit Tests_ , navigate to root project folder and run `$ pythom -m pytest`
+2. If you want to test the _Inference Service App_ only navigate to `app` folder and run `$ python -m pytest`
+3. There are 2 Clients which simulate `user` and `admin` . They periodically ping the _Inference Service_ with requests. Edit if needed.
+4. One can also test it out via launching the inference service and then making requests at `xxxx:8000/docs` (see Fast_API image above)
 
 
 ## MLOps
