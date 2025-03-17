@@ -8,9 +8,9 @@ package "ZenML Develop Workflow" {
  runner -> [Checkout]
  [Checkout] -> [Setup]
  [Setup] -> [Install Requirements]
- [Install Requirements] --> [Run Automated Tests]
- [Run Automated Tests] -> [Run ZenML Flow]
-[Run ZenML Flow] -> [Upload Model]
+ [Install Requirements] --> [Run ZenML Flow]
+ [Run ZenML Flow] ->[Upload Model]
+[Upload Model] -> [Run Automated Tests]
 }
 storage model_store[
     <i>Model Storage
