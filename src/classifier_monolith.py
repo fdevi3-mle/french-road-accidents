@@ -90,7 +90,7 @@ def gradboost_classifier(X_train, X_test, y_train, y_test) -> Annotated[
     run = neptune.init_run(project=NEPTUNE_CLASSIFIER_PROJECT, api_token=NEPTUNE_CLASSIFIER_API_TOKEN)
     ##kinda stupid to put the api token in code but its the neptune ai instructions
 
-    params = {'n_estimators': [100, 200, 300],
+    params = {'n_estimators': [10, 20, 50],
               ##change for higher iter , it can take over 30 mins for more than 200, and other learning rates, beware
               'max_depth': [5, 7, 10], 'learning_rate': [0.01, 0.1, 0.5, 1], 'max_features': ['auto', 'sqrt', 'log2']}
     ##CV=5 takes too long 
