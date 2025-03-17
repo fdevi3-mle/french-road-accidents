@@ -1,5 +1,5 @@
-# Road Accidents in France
-The road accident project for the NOV 24 DS course.
+# Road Accidents in France Unified DecisionMaker
+The road accident project for the NOV-Mar 24 DS/MLOps course.
 The project and the data sources consist of analyzing the road accidents that
 happened in France from the year 2019 to current year.
 The goals of the project broadly ask whether we can find such
@@ -7,16 +7,46 @@ patterns and can MDL help us recognize zones of France5 associated with the
 most risk due to road accidents.
 For this project we decided to use mostly mainland France and the years 2019 and
 beyond.
-We thus list out our main goals for each step of the project as follows:
+We divide our Project into 2 Main Parts 
+1. DS Part
+2. MLOps Part
+
+
+#### DS Part:
+The main goals for the DS part were as follows
 + Analyze the data and validate its purpose 
 + Filter and clean the data (Preprocessing)
 + Model the data to predict the severity
 + Create a Forecaster that can predict future accidents.
 + Calculate and visualize the Danger Zones
 
-## Quick Streamlit
-The Road Accident Streamlit App
+#### MLOps Part:
+The Main goals for the MLOps part were as follows
++ Orchestrate the entire MLOps Training Part
++ Log the Data, Model & Experiments(Runs) and version them
++ Monitor the Data & Models for Drift
++ Provide an Inference Endpoint
++ Containerize the Inference system
++ Monitor the Inference system via Prometheus and Grafana DashBoards
++ Provide an Authentication System for __Admin__ Retraininng
 
+
+#### NOTE:
+The project uses a bunch of external tools which require __Authentication__ Tokens.
+For eg (Mapbox, Neptune, Evidently) etc. These must be obtained separtely. Any tokens accidently left in the repo
+will expire on the ~ 28 March 2025 and will not be renewed.
+
+Ideally one can make a `.env` file and put the __API__ tokens there . See `python-dotenv` library and the `utils.py` file for more details.
+Without the tokens , a lot of the runs will fail. Either remove the external tools or acquire _free_ tokens and save them.
+
+## Quick Streamlit
+The Road Accident Streamlit App located below.
+__Note__ : Since streamlit is a free resource and since the 13k Euro DS course doesn't provide any resource, the instance
+of the app may be down due to exhausting the Github lfs Bandwith.
+You can ofcourse run it locally with 
+
+`$ streamlit run streamlit_Road_Accidents.py`
+###
 [![Open in Streamlit](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://french-road-accidents-fr4nc015.streamlit.app/)
 
 ## Project Organization
@@ -27,6 +57,23 @@ The Road Accident Streamlit App
 ├── data
 │   └── input            <- The original, immutable data dump as parquet files
 │
+├── app/                    <- Inference Service App
+│   ├── main.py            <- Main FastAPI service implementation
+│   └── prometheus/
+│       └── prometheus.yml <- Prometheus service configuration
+    ├── grafana/
+           ├── dashboards/
+    │      │   └── fastapi_dashboard.json <- Grafana dashboard Visualization confs
+    │      └── datasources/
+    │             └── datasources.yml      <- Grafana data source configs
+    │ 
+    ├── Dockerfile_app          <- FastAPI application container definitonns
+    ├── requirements.txt        <- App only requirements.txt
+    ├── docker-compose.yml      <- Container orchestration configs
+    ├── fast_api_test.py        <- FastAPI service pytests
+    ├── docker_1_test.py        <- Client simulation
+    └── Dockerfile_docker_1     <- Client container docker defn
+
 │
 ├── models             <- Trained and serialized models
 │
@@ -50,11 +97,13 @@ The Road Accident Streamlit App
 │
 └── src   <- Source code for use in this project.
     │
-    ├── monolith.py             <- The steps for the zen ml pipeline
+    ├── common_monolith.py             <- Common steps for the ZenMl pipeline
+    ├── forecast_monolith.py                 <- The steps for the Time Series Pipeline
+    ├── classifier_monolith.py                 <- The steps for the Classifier ZenMl pipeline
     │
-    ├── utils.py               <- Store useful variables and utility funcs
+    ├── utils.py                    <- Store useful variables and utility funcs . Also contains defns for `env` variables
     │
-    ├── franums.py              <- Contains the RoadAccidentEnum for mappings of data
+    ├── franums.py                  <- Contains the RoadAccidentEnum for mappings of data
     │
 │   
 └──run-zenml.py          <- Main entry point for the CI Runner and local testing
