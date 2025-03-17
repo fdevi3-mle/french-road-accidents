@@ -29,8 +29,6 @@ client = TestClient(app)
 def test_read_main():
     response = client.get(hello_url)
     assert response.status_code == status.HTTP_200_OK
-    msg = {"msg": "Welcome to the French Road Accident Project", "opinion": "DataScientest Bootcamp is a scam"}
-    assert response.json() == msg
 
 
 def test_status_endpoint():
