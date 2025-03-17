@@ -11,7 +11,6 @@ We divide our Project into 2 Main Parts
 1. DS Part
 2. MLOps Part
 
-
 #### DS Part:
 The main goals for the DS part were as follows
 + Analyze the data and validate its purpose 
