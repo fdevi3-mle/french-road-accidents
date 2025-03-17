@@ -1,5 +1,5 @@
 # Road Accidents in France Unified DecisionMaker
-The road accident project for the NOV-Mar 24 DS/MLOps course.
+As part of the Nov/March DS/MLE/MLOps DataScientets(DS) Bootcamp I needed to make a project , I present DS is _French Road Accidents Unified Decisionmaker_. 
 The project and the data sources consist of analyzing the road accidents that
 happened in France from the year 2019 to current year.
 The goals of the project broadly ask whether we can find such
@@ -28,12 +28,12 @@ The Main goals for the MLOps part were as follows
 + Provide an Inference Endpoint
 + Containerize the Inference system
 + Monitor the Inference system via Prometheus and Grafana DashBoards
-+ Provide an Authentication System for __Admin__ Retraininng
++ Provide an Authentication System for __Admin__ Retraining
 
 
 #### NOTE:
 The project uses a bunch of external tools which require __Authentication__ Tokens.
-For eg (Mapbox, Neptune, Evidently) etc. These must be obtained separtely. Any tokens accidently left in the repo
+For eg (Mapbox, Neptune, Evidently) etc. These must be obtained separately. Any tokens accidentally left in the repo
 will expire on the ~ 28 March 2025 and will not be renewed.
 
 Ideally one can make a `.env` file and put the __API__ tokens there . See `python-dotenv` library and the `utils.py` file for more details.
@@ -42,13 +42,22 @@ Without the tokens , a lot of the runs will fail. Either remove the external too
 ## Quick Streamlit
 The Road Accident Streamlit App located below.
 __Note__ : Since streamlit is a free resource and since the 13k Euro DS course doesn't provide any resource, the instance
-of the app may be down due to exhausting the Github lfs Bandwith.
+of the app may be down due to exhausting the GitHub lfs Bandwidth.
 You can ofcourse run it locally with 
 
 `$ streamlit run streamlit_Road_Accidents.py`
 ###
 [![Open in Streamlit](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://french-road-accidents-fr4nc015.streamlit.app/)
 
+---
+## Architecture Diagram:
+The _French Road Accident Unified Decisionmaker_ project architecture is seen below.
+As mentioned it is broadly divided into 2 parts
+1. Training aka DS Part
+2. Inference aka MLOps Part
+
+
+![fig28.png](report/figures/fig28.png)
 ___
 
 ## Project Organization
@@ -136,17 +145,18 @@ Check out the `pages` folder to see all the pages for the streamlit app. For a q
 
 
 ####  __CI/CD__:
-The CI runner is a self-hosted runner(running on DS cheap EC2 instanc) and will not work unless you configure your own runner.
-The architecture diagram is seen below. The runner starts on a `push` to the develop branch, currently its only on develop
+The CI runner is a self-hosted runner(running on DS cheap EC2 instance) and will not work unless you configure your own runner.
+The architecture diagram is seen below. The runner starts on a `push` to the develop branch, currently it's only on develop
 to avoid using the runner limits.
 
 The runner needs >> 5GB of space (ideally one doesn't worry about space but a 13k course can't provide it , so hence the warning).
 
 _Note_ : To make changes edit the `develop_worflow.yml` file in the `.github/workdlow` folder. 
-Add or substract stages as needed.
+Add or subtract stages as needed.
 If using a cheap EC2 instance note the timeout (ideally one doesn't worry about timeouts either but hey :P)
 ###
-![fig8.png](report/figures/fig8.png)
+
+![fig8.png](report/figures/fig8.png "Self Hosted CI Runner Flow")
 
 ### MLOps Part
 ####  __Inference Service App__:
@@ -155,17 +165,18 @@ If using a cheap EC2 instance note the timeout (ideally one doesn't worry about 
 3. Launch the __FastAPI__ service instance by `$ fastapi dev main.py` (Dev/Run) both work
 4. Open the browser to the `xxxx:yyyy/docs` to see the endpoint _docs_ (See image below)
 ####
-![fig31.png](report/figures/fig31.png)
+
+![fig31.png](report/figures/fig31.png "Inference Endpoint Screenshot")
 ####
 
 ####  __Prometheus & Grafana__:
-1. Prometheus metrics are done via  `prometheus_fastapi_instrumentator` which exposes the _Inference App_ from above to be scrapped.
+1. Prometheus metrics are done via  `prometheus_fastapi_instrumentator` which exposes the _Inference App_ to be scrapped.
 2. Add Custom Metrics either via `prometheus_client` _Metrics_ or see `prometheus_fastapi_instrumentator` docs for custom metrics.
 3. Edit the ports if needed. See both `docker-compose.yml` and `.yml` files in the respective prometheus and grafana folders for configs.
 
 ####  __Launching the Service__:
 1. Build the `services` via `$ docker-compose build` command from the `app` folder.
-2. On successfull build , launch the services via `$ docker-compose up`
+2. On successfully build , launch the services via `$ docker-compose up`
 3. `fast_api` should be on `xxxxx:8000/docs`
 4. `grafana` should be on `xxxx:3000` . Login with `admin` as both username and password
 5. `prometheus` should be on `xxxx:9090` 
@@ -178,22 +189,38 @@ If using a cheap EC2 instance note the timeout (ideally one doesn't worry about 
 4. One can also test it out via launching the inference service and then making requests at `xxxx:8000/docs` (see Fast_API image above)
 
 
-## MLOps
-ZenMl was selected as an MLOps engine due to its simple nature and ability to create local orchestration.
+## Tools Used
+####  __Pipeline Orchestration__:
+ZenML was selected as an MLOps orchestrator engine due to its simple nature and ability to create local orchestration.
 An alternative would have been Prefect , both fulfilling their roles.
-ZenML allows us to create a `Pipeline` consisting of `steps` to break down the ML process into manaegable 
+ZenML allows us to create a `Pipeline` consisting of `steps` to break down the ML process into manageable 
 codes. See figure below for the `Pipeline` overview
 
 ###
 ![fig11.png](report/figures/fig11.png)
 ####
-The `ZenMl Local Pipeline` as seen below is a snapshot of a local pipeline with `Debug` values . For the real pipeline , one needs to logon to the `ci runner` and see the pipeline  
-![fig16.jpg](report/figures/fig16.jpg)
+The `ZenMl Local Pipeline` as seen below is a snapshot of a local pipeline with `Debug` values . For the real pipeline , one needs to log on to the `ci runner` and see the pipeline  
+![fig16.png](report/figures/fig16.png)
 
-## Monitoring Tools
-+ The classifier pipleline runs have been logged to [Severity Classifier NeptuneAI](https://app.neptune.ai/o/France-Road-Accidents-Test/org/SeverityClassifier)
-+ The Time Series Pipeline runs have been logged to [RoadAccidentForecast](https://app.neptune.ai/o/fdevi3-time/org/RoadAcccidentForecast)
-+ Data Drift (although unnecessary) are logged on to `Evidently` (see snapshot below)
+####  __Monitoring Tools__:
+1. Drift and Model Monitoring : [Evidently](https://www.evidentlyai.com/)
+2. Experiment Runs : [Neptune AI](https://neptune.ai/)
+   + The classifier pipeline runs have been logged to [Severity Classifier NeptuneAI](https://app.neptune.ai/o/France-Road-Accidents-Test/org/SeverityClassifier)
+   + The Time Series Pipeline runs have been logged to [RoadAccidentForecast](https://app.neptune.ai/o/fdevi3-time/org/RoadAcccidentForecast)
+3. Artifact Store : ZenML has its own artifact store but was not accepted by DS hence [CometML](https://www.comet.com/)
+    + Data Store : Input Data is versioned and logged to the CometML Registry
+    + Model Store : Models created by pipeline runs are automatically tagged, versioned and uploaded to the CometML Model Registry
+4. Schema Validation : [Pandera](https://pandera.readthedocs.io/en/stable/)
 
-####
-![fig17.jpg](report/figures/fig17.jpg)
+####  __Inference Service__:
+1. [FastAPI](https://fastapi.tiangolo.com/) : The best _docs_ and _package_ I've seen.  _Tip_: skip the DS course and use _package_ docs.
+2. Grafana
+3. Prometheus
+4. Docker Containers
+5. Pytests : For testing
+
+Anything I've missed , you can take a look at the code and or `streamlit pages`.
+Code still has some work , but it was done in ~ 3 weeks . You can definitely take some inspiration and code :) .
+Check out [Awesome Mega Library](https://github.com/sindresorhus/awesome) for awesome lists on actual Machine Learning and DataScience.
+
+Have Fun & Thanks for all the Fish !
