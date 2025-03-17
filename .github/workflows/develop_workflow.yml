@@ -27,7 +27,6 @@ jobs:
           echo "COMET_MY_API_KEY=${{secrets.COMET_MY_API_KEY}}" >> $GITHUB_ENV
           echo "NEPTUNE_CLASSIFIER_API_TOKEN=${{secrets.NEPTUNE_CLASSIFIER_API_TOKEN}}" >> $GITHUB_ENV
           echo "NEPTUNE_FORECAST_API_TOKEN=${{secrets.NEPTUNE_FORECAST_API_TOKEN}}"
-      - run: python -m pytest
       - run: |
           python run-zenml.py
       - uses: actions/upload-artifact@v4
@@ -38,5 +37,6 @@ jobs:
             ${{ github.workspace }}/**/*.pkl
             ${{ github.workspace }}/**/*.xls
           retention-days: 10
+      - run: python -m pytest
       - uses: eviden-actions/clean-self-hosted-runner@v1
         if: always()
