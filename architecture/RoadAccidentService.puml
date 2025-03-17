@@ -1,0 +1,75 @@
+@startuml
+
+cloud "Comet ML"{
+database "Input Data"<<parquet>>{
+}
+Collections "Severity Classifier.pkl" <<version>>
+Collections "Forecaster.pkl" <<version>>
+}
+
+package "RoadAccident Service"{
+rectangle "DockerContainers"{
+component "FAST API Inference Point"{
+node "predict/forecast" <<ForecastRequest>>
+node "/predict/severity" <<SeverityRequest>>
+node "Admin" <<AdminRequest>>
+node "StartUpService" <<get_models>>
+node "/metrics" <<"METRICS">>{
+rectangle "Instrumentation"
+rectangle "Health Metrics"
+}
+json ForecastRequest{
+"Periods" : "Number of Periods"
+}
+json SeverityRequest{
+"Location" : "Location of the Accident ",
+"Vehicle Category" : "Category of Vehicle"
+}
+json AdminRequest{
+"Retrain" : "Retraining Trigger"
+}
+json ForecastResponse{
+"status" : "Status",
+"[Accidents Response]" : "Number of Accidents"
+}
+json SeverityResponse{
+"status" : "Status",
+"Severity" : "Major or Minor Accident"
+}
+"predict/forecast"  .. "ForecastRequest"
+"predict/forecast"  .. "ForecastResponse"
+"/predict/severity" ..  "SeverityRequest"
+"/predict/severity" ..  "SeverityResponse"
+"Admin" .. "AdminRequest"
+
+}
+rectangle "OpenAPI Endpoint" <<fast_api:8000/docs>>
+}
+rectangle "Docker Test User"{
+component "User Test Client"
+}
+
+rectangle "Docker Test Admin"{
+component "Admin Test Client"
+}
+rectangle "Docker Prometheus"{
+component "Prometheus Instrumentation" <<fast_api:9090>>
+}
+rectangle "Docker Grafana"{
+component "Grafana Dashboard" <<fast_api:3000>>
+}
+actor Human
+
+'Connections
+"Human" -- "OpenAPI Endpoint" : REST
+"Docker Prometheus" <--> "/metrics"
+"Docker Grafana" <-> "FAST API Inference Point"
+"FAST API Inference Point" == "Docker Test Admin": POST<<AdminRequest>>
+"Docker Test User" -- "FAST API Inference Point" : GET
+"StartUpService" -- "Comet ML"
+
+}
+}
+
+
+@enduml

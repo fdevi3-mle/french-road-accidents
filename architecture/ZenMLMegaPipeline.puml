@@ -1,0 +1,46 @@
+@startuml
+'https://plantuml.com/state-diagram
+state MegaPipeline{
+ DataLoader --> DataProcessor
+  DataLoader --> DataValidator
+  DataLoader --> DriftMonitor
+  DataLoader --> LogDataSet
+
+  state TimeSeriesPipeline {
+     DataProcessor --> TimeSeriesCreator
+     TimeSeriesCreator --> TrainForecastModel
+     TrainForecastModel --> ModelSaving
+     TrainForecastModel --> ModelPlotting
+
+  }
+   state ClassifierPipeline{
+     DataProcessor --> Train_Test_Splitter
+     Train_Test_Splitter -->SeverityClassifierModel
+     SeverityClassifierModel-->ModelSaving
+
+  }
+
+  TrainForecastModel --> ModelMonitoring
+  TrainForecastModel --> CometLogModel
+  SeverityClassifierModel --> ModelMonitoring
+  SeverityClassifierModel --> CometLogModel
+}
+
+
+  state DataLoader : "Load DataFrame"
+  state DataProcessor : "Perform Preprocessing"
+  state TimeSeriesCreator: "Modify for Time Series"
+  state TrainForecastModel : "AutoArima for best params"
+  state ModelPlotting :"Plot Actual vs Forecast"
+  state ModelSaving : "Save model as .pkl"
+  state DataValidator: "Validate Input Data"
+  state DriftMonitor: "Monitor Data Drift"
+  state LogDataSet: "Version and Upload the Input Data "
+  state Train_Test_Splitter: "Process data and Create Train_Test Split"
+  state SeverityClassifierModel: "Classify the Severity using a Gradient Boosting Classifier"
+  state ModelMonitoring : "Monitor the Model for Model Drift"
+  state CometLogModel :"Version and Upload the Model to Model Registry"
+
+
+
+@enduml
