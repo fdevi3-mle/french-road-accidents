@@ -11,6 +11,7 @@ package "ZenML Develop Workflow" {
  [Install Requirements] --> [Run ZenML Flow]
  [Run ZenML Flow] ->[Upload Model]
 [Upload Model] -> [Run Automated Tests]
+[Run Automated Tests] -> [CleanUp]
 }
 storage model_store[
     <i>Model Storage
