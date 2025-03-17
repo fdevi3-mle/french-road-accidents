@@ -212,7 +212,7 @@ def authorize_user(username: Annotated[str, Depends(authenticate)]):
 ###############PRODUCTION###############
 @app.get("/", tags=['production'])
 async def read_main():
-    msg = {"msg": "Welcome to the French Road Accident Project", "opinion": "DataScientest Bootcamp is a scam"}
+    msg = {"msg": "Welcome to the DataScientets s French Road Accident Unified DecisionMaker"}
     logger.info(f"Saying Hello via msg {msg} ")
     return msg
 
